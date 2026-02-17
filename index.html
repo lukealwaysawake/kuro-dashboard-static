@@ -1116,7 +1116,7 @@
         renderWhaleTable(data.aggregate || []);
         renderTrades(data.recentTrades || []);
         renderSignals(data.copySignals || []);
-        renderPositions(positions);
+        renderPositions(data.account?.positions || []);
         updateMarginStats(data.account?.margin || null);
       } catch(e) { console.error('Data fetch error:', e); }
     }
@@ -1134,18 +1134,9 @@
       fetchPortfolio(currentRange);
     }
 
-    // Init
-    fetchData();
-    fetchDecision();
-    fetchPortfolio(currentRange);
-    setInterval(fetchData, 45000);
-    setInterval(fetchDecision, 45000);
-    setInterval(() => fetchPortfolio(currentRange), 60000);
-
     // ============================================================
-    // INLINE API FUNCTIONS (Hyperliquid public API, CORS supported)
+    // INLINE API CONSTANTS (must be defined before init calls)
     // ============================================================
-
     const HL_API = 'https://api.hyperliquid.xyz';
     const WALLET = '0xff48c5bEe24DD4905ef23DDdFe10F02FEf51F1dc';
     const WATCHED_WHALES = [
@@ -1482,6 +1473,16 @@
         stats: { accountValue, totalTrades: 0, winRate: 'N/A', totalPnL: 0 },
       };
     }
+
+    // ============================================================
+    // INIT (after all API functions are defined)
+    // ============================================================
+    fetchData();
+    fetchDecision();
+    fetchPortfolio(currentRange);
+    setInterval(fetchData, 45000);
+    setInterval(fetchDecision, 45000);
+    setInterval(() => fetchPortfolio(currentRange), 60000);
   </script>
 </body>
 </html>
