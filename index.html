@@ -738,6 +738,7 @@
     // Formatters
     const fmt = {
       money: (v) => {
+        if (v == null || isNaN(v)) return '$0.00';
         if (Math.abs(v) >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
         if (Math.abs(v) >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
         return '$' + v.toFixed(2);
@@ -1166,18 +1167,28 @@
 
     // ---- apiData ----
     async function apiData() {
-      const [perpState, spotState, prices, myFills] = await Promise.all([
+      // Fetch core data (separate fills to avoid blocking if it fails)
+      const [perpState, spotState, prices] = await Promise.all([
         hlFetch({ type: 'clearinghouseState', user: WALLET }),
-        hlFetch({ type: 'spotClearinghouseState', user: WALLET }),
+        hlFetch({ type: 'spotClearinghouseState', user: WALLET }).catch(() => ({ balances: [] })),
         hlFetch({ type: 'allMids' }),
-        hlFetch({ type: 'userFills', user: WALLET }),
       ]);
+
+      // Fetch fills separately with fallback (may fail for new wallets)
+      let myFills = [];
+      try {
+        const fillsResult = await hlFetch({ type: 'userFills', user: WALLET });
+        myFills = Array.isArray(fillsResult) ? fillsResult : [];
+      } catch(e) { myFills = []; }
+
       const usdcBalance = spotState?.balances?.find(b => b.coin === 'USDC');
       const totalBalance = usdcBalance ? parseFloat(usdcBalance.total) : 0;
       const account = { ...perpState, totalBalance, spotBalances: spotState?.balances || [] };
 
       const whaleAccounts = await Promise.all(
-        WATCHED_WHALES.map(addr => hlFetch({ type: 'clearinghouseState', user: addr }))
+        WATCHED_WHALES.map(addr =>
+          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
+        )
       );
       const whalePositions = whaleAccounts.map((wa, i) => ({
         address: WATCHED_WHALES[i],
@@ -1203,12 +1214,17 @@
           if (!coinMap[pos.coin]) {
             coinMap[pos.coin] = { coin: pos.coin, longCount: 0, shortCount: 0, totalCount: 0,
               longValue: 0, shortValue: 0, netValue: 0, avgLongEntry: 0, avgShortEntry: 0,
-              longRatio: 0 };
+              longPnL: 0, shortPnL: 0, longRatio: 0, momentum: 0, netDirection: 'NEUTRAL', agreement: 'MIXED' };
           }
           const c = coinMap[pos.coin];
           c.totalCount++;
-          if (pos.direction === 'LONG') { c.longCount++; c.longValue += pos.value; c.avgLongEntry += pos.entryPrice; }
-          else { c.shortCount++; c.shortValue += pos.value; c.avgShortEntry += pos.entryPrice; }
+          if (pos.direction === 'LONG') {
+            c.longCount++; c.longValue += pos.value; c.avgLongEntry += pos.entryPrice;
+            c.longPnL += pos.pnl;
+          } else {
+            c.shortCount++; c.shortValue += pos.value; c.avgShortEntry += pos.entryPrice;
+            c.shortPnL += pos.pnl;
+          }
         }
       }
       for (const c of Object.values(coinMap)) {
@@ -1216,10 +1232,15 @@
         if (c.shortCount > 0) c.avgShortEntry = c.avgShortEntry / c.shortCount;
         c.netValue = c.longValue - c.shortValue;
         c.longRatio = c.totalCount > 0 ? Math.round((c.longCount / c.totalCount) * 100) : 0;
+        c.netDirection = c.longCount > c.shortCount ? 'LONG' : (c.shortCount > c.longCount ? 'SHORT' : 'NEUTRAL');
+        c.agreement = Math.abs(c.longCount - c.shortCount) >= 2 ? 'ALIGNED' : 'MIXED';
+        c.momentum = c.longCount > 0 || c.shortCount > 0
+          ? Math.round(((c.longCount - c.shortCount) / c.totalCount) * 100)
+          : 0;
       }
       const aggregate = Object.values(coinMap).sort((a, b) => b.netValue - a.netValue);
 
-      const recentTrades = (myFills || []).slice(-50).reverse().map(f => ({
+      const recentTrades = (Array.isArray(myFills) ? myFills : []).slice(-50).reverse().map(f => ({
         time: f.time, coin: f.coin, direction: f.dir, size: parseFloat(f.sz),
         price: parseFloat(f.px), value: parseFloat(f.sz) * parseFloat(f.px),
         pnl: parseFloat(f.closedPnl || 0), fee: parseFloat(f.fee || 0),
@@ -1233,7 +1254,7 @@
           totalValue: direction === 'LONG' ? a.longValue : a.shortValue, longRatio: a.longRatio };
       }).filter(s => s.direction !== 'NEUTRAL' && s.whaleCount >= 5);
 
-      const realizedPnl = (myFills || []).filter(f => parseFloat(f.closedPnl || 0) !== 0)
+      const realizedPnl = (Array.isArray(myFills) ? myFills : []).filter(f => parseFloat(f.closedPnl || 0) !== 0)
         .reduce((sum, f) => sum + parseFloat(f.closedPnl), 0);
 
       const myPositions = (account.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => {
@@ -1421,7 +1442,9 @@
       }));
 
       const whaleAccounts = await Promise.all(
-        WATCHED_WHALES.map(addr => hlFetch({ type: 'clearinghouseState', user: addr }))
+        WATCHED_WHALES.map(addr =>
+          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
+        )
       );
       let btcLong = 0, btcShort = 0, ethLong = 0, ethShort = 0;
       for (const wa of whaleAccounts) {
