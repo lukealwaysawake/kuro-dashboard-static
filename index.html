@@ -1142,9 +1142,9 @@
     // ============================================================
     const HL_API = 'https://api.hyperliquid.xyz';
     const WALLET = '0xff48c5bEe24DD4905ef23DDdFe10F02FEf51F1dc';
-    // Bot config (synced from kuro-trading config.js)
-    const config_entryThreshold = 35;  // strategy.entryThreshold
-    const config_weights = { trend: 0.15, momentum: 0.15, volume: 0.10, onchain: 0.05, whale: 0.30, divergence: 0.10, mtf: 0.10, orderbook: 0.05 };
+    // Bot config (auto-synced from kuro-trading, fallback to defaults)
+    window._botConfig = { entryThreshold: 35, weights: { trend: 0.15, momentum: 0.15, volume: 0.10, onchain: 0.05, whale: 0.30, divergence: 0.10, mtf: 0.10, orderbook: 0.05 }, leverageTiers: { BTC: 5, ETH: 5, SOL: 5, default: 2 }, maxPairs: 8 };
+    const config_entryThreshold = () => window._botConfig?.entryThreshold || 35;
     const WATCHED_WHALES = [
       '0x3fc56e944aa7b1594c85861b2d46a07f82a2c0c1',
       '0x3ff54fd26855db3758d0b5ae7aed47440c47f705',
@@ -1193,11 +1193,8 @@
       const totalBalance = usdcBalance ? parseFloat(usdcBalance.total) : 0;
       const account = { ...perpState, totalBalance, spotBalances: spotState?.balances || [] };
 
-      const whaleAccounts = await Promise.all(
-        WATCHED_WHALES.map(addr =>
-          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
-        )
-      );
+      const whaleCache = await fetchWhaleData(); // shared cache
+      const whaleAccounts = whaleCache.accounts;
       const whalePositions = whaleAccounts.map((wa, i) => ({
         address: WATCHED_WHALES[i],
         positions: (wa.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => ({
@@ -1438,27 +1435,63 @@
     }
 
     // ---- apiDecisions ----
-    // Fetch bot decisions from synced JSON
+    // Fetch bot decisions + config from synced JSON (cached 60s)
+    let _botCache = { decisions: [], config: null, ts: 0 };
     async function fetchBotDecisions() {
+      if (Date.now() - _botCache.ts < 60000) return _botCache.decisions;
       try {
-        const res = await fetch('./data/decisions.json?t=' + Date.now());
-        if (!res.ok) return [];
-        const data = await res.json();
-        return Array.isArray(data) ? data : [];
-      } catch { return []; }
+        const res = await fetch('./data/decisions.json?t=' + Math.floor(Date.now() / 60000));
+        if (!res.ok) return _botCache.decisions;
+        const raw = await res.json();
+        // Support both formats: array (old) or {decisions, config} (new)
+        if (Array.isArray(raw)) {
+          _botCache = { decisions: raw, config: null, ts: Date.now() };
+        } else {
+          _botCache = { decisions: raw.decisions || [], config: raw.config || null, ts: Date.now() };
+          // Update config from bot if available
+          if (raw.config?.entryThreshold) window._botConfig = raw.config;
+        }
+        return _botCache.decisions;
+      } catch { return _botCache.decisions; }
+    }
+
+    // Shared whale cache — populated by apiData, reused by apiDecisions
+    let _whaleCache = { accounts: [], btcLong: 0, btcShort: 0, ethLong: 0, ethShort: 0, byCoin: {}, ts: 0 };
+
+    async function fetchWhaleData() {
+      // Reuse if fresh (< 30s)
+      if (Date.now() - _whaleCache.ts < 30000 && _whaleCache.accounts.length > 0) return _whaleCache;
+      const whaleAccounts = await Promise.all(
+        WATCHED_WHALES.map(addr =>
+          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
+        )
+      );
+      const byCoin = {};
+      let btcLong = 0, btcShort = 0, ethLong = 0, ethShort = 0;
+      for (const wa of whaleAccounts) {
+        for (const p of (wa?.assetPositions || [])) {
+          const coin = p.position.coin;
+          const size = parseFloat(p.position.szi);
+          if (size === 0) continue;
+          if (!byCoin[coin]) byCoin[coin] = { long: 0, short: 0 };
+          if (size > 0) byCoin[coin].long++; else byCoin[coin].short++;
+          if (coin === 'BTC') { if (size > 0) btcLong++; else btcShort++; }
+          if (coin === 'ETH') { if (size > 0) ethLong++; else ethShort++; }
+        }
+      }
+      _whaleCache = { accounts: whaleAccounts, btcLong, btcShort, ethLong, ethShort, byCoin, ts: Date.now() };
+      return _whaleCache;
     }
 
     async function apiDecisions() {
-      // Fetch all data in parallel: account, prices, fills, whale accounts, bot decisions
-      const [rawAccount, rawPrices, rawFills, botDecisions, ...whaleAccounts] = await Promise.all([
+      // Fetch account + prices + fills + bot decisions (whales from shared cache)
+      const [rawAccount, rawPrices, rawFills, botDecisions] = await Promise.all([
         hlFetch({ type: 'clearinghouseState', user: WALLET }).catch(() => null),
         hlFetch({ type: 'allMids' }).catch(() => ({})),
         hlFetch({ type: 'userFills', user: WALLET }).catch(() => []),
         fetchBotDecisions(),
-        ...WATCHED_WHALES.map(addr =>
-          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
-        ),
       ]);
+      const whaleData = await fetchWhaleData(); // uses cache from apiData
 
       const account = rawAccount || { marginSummary: { accountValue: '0' }, assetPositions: [] };
       const prices = rawPrices || {};
@@ -1471,20 +1504,9 @@
         pnl: parseFloat(p.position.unrealizedPnl || 0), leverage: parseFloat(p.position.leverage?.value || 1),
       }));
 
-      // Whale aggregation
-      const whalesByCoin = {};
-      let btcLong = 0, btcShort = 0, ethLong = 0, ethShort = 0;
-      for (const wa of whaleAccounts) {
-        for (const p of (wa.assetPositions || [])) {
-          const coin = p.position.coin;
-          const size = parseFloat(p.position.szi);
-          if (size === 0) continue;
-          if (!whalesByCoin[coin]) whalesByCoin[coin] = { long: 0, short: 0 };
-          if (size > 0) whalesByCoin[coin].long++; else whalesByCoin[coin].short++;
-          if (coin === 'BTC') { if (size > 0) btcLong++; else btcShort++; }
-          if (coin === 'ETH') { if (size > 0) ethLong++; else ethShort++; }
-        }
-      }
+      // Whale data from shared cache (no duplicate API calls)
+      const whalesByCoin = whaleData.byCoin;
+      const { btcLong, btcShort, ethLong, ethShort } = whaleData;
 
       const btcPrice = parseFloat(prices.BTC || 0);
       const ethPrice = parseFloat(prices.ETH || 0);
@@ -1656,7 +1678,7 @@
         const ethSigDir = latestPeriodic?.signals?.ETH?.direction || 'NEUTRAL';
 
         currentDecision = { status: 'WAITING', action: '포지션 없음 - 관망',
-          reason: `🤖 봇 시그널: BTC ${btcSigDir}(${btcSigScore}) / ETH ${ethSigDir}(${ethSigScore})\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⏳ 진입 기준: 시그널 스코어 ±${config_entryThreshold} 이상 필요.`,
+          reason: `🤖 봇 시그널: BTC ${btcSigDir}(${btcSigScore}) / ETH ${ethSigDir}(${ethSigScore})\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⏳ 진입 기준: 시그널 스코어 ±${config_entryThreshold()} 이상 필요.`,
           emoji: '⏳' };
       }
 
@@ -1693,9 +1715,9 @@
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
-    setInterval(fetchData, 45000);
-    setInterval(fetchDecision, 45000);
-    setInterval(() => fetchPortfolio(currentRange), 60000);
+    setInterval(fetchData, 45000);          // 45s — prices, positions, whales
+    setInterval(fetchDecision, 120000);       // 2min — decisions (bot sync is 5min anyway)
+    setInterval(() => fetchPortfolio(currentRange), 90000); // 90s — PnL chart
   </script>
 </body>
 </html>
