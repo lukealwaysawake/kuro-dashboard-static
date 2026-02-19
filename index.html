@@ -249,6 +249,8 @@
     .tl-dot.EXIT { background: var(--red); }
     .tl-dot.FLIP { background: var(--blue); }
     .tl-dot.PERIODIC { background: var(--muted); }
+    .tl-dot.SKIP { background: #f59e0b; }
+    .tl-dot.CURRENT { background: var(--blue); }
     .tl-dot.SYSTEM { background: #a78bfa; }
     .tl-body { flex: 1; min-width: 0; }
     .tl-head {
@@ -1140,6 +1142,9 @@
     // ============================================================
     const HL_API = 'https://api.hyperliquid.xyz';
     const WALLET = '0xff48c5bEe24DD4905ef23DDdFe10F02FEf51F1dc';
+    // Bot config (synced from kuro-trading config.js)
+    const config_entryThreshold = 35;  // strategy.entryThreshold
+    const config_weights = { trend: 0.15, momentum: 0.15, volume: 0.10, onchain: 0.05, whale: 0.30, divergence: 0.10, mtf: 0.10, orderbook: 0.05 };
     const WATCHED_WHALES = [
       '0x3fc56e944aa7b1594c85861b2d46a07f82a2c0c1',
       '0x3ff54fd26855db3758d0b5ae7aed47440c47f705',
@@ -1433,12 +1438,23 @@
     }
 
     // ---- apiDecisions ----
+    // Fetch bot decisions from synced JSON
+    async function fetchBotDecisions() {
+      try {
+        const res = await fetch('./data/decisions.json?t=' + Date.now());
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch { return []; }
+    }
+
     async function apiDecisions() {
-      // Fetch all data in parallel: account, prices, fills, whale accounts
-      const [rawAccount, rawPrices, rawFills, ...whaleAccounts] = await Promise.all([
+      // Fetch all data in parallel: account, prices, fills, whale accounts, bot decisions
+      const [rawAccount, rawPrices, rawFills, botDecisions, ...whaleAccounts] = await Promise.all([
         hlFetch({ type: 'clearinghouseState', user: WALLET }).catch(() => null),
         hlFetch({ type: 'allMids' }).catch(() => ({})),
         hlFetch({ type: 'userFills', user: WALLET }).catch(() => []),
+        fetchBotDecisions(),
         ...WATCHED_WHALES.map(addr =>
           hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
         ),
@@ -1537,6 +1553,44 @@
         history.push({ timestamp: new Date(t.time).toISOString(), time: t.time, type, action, reason });
       }
 
+      // Merge bot decisions (SKIP, PERIODIC, TRADE from algorithm)
+      const botCutoff = now - 48 * 60 * 60 * 1000;
+      for (const bd of botDecisions) {
+        const bdTime = new Date(bd.timestamp).getTime();
+        if (bdTime < botCutoff) continue;
+
+        if (bd.type === 'PERIODIC') {
+          // Bot's periodic analysis summary — shows actual signal scores
+          const btcSig = bd.signals?.BTC;
+          const ethSig = bd.signals?.ETH;
+          const btcStr = btcSig ? `BTC ${btcSig.direction}(${btcSig.score})` : '';
+          const ethStr = ethSig ? `ETH ${ethSig.direction}(${ethSig.score})` : '';
+          history.push({
+            timestamp: bd.timestamp, time: bdTime, type: 'PERIODIC',
+            action: bd.action || '분석 완료',
+            reason: `${bd.reason || ''}${btcStr || ethStr ? ` [${btcStr} ${ethStr}]` : ''}`,
+          });
+        } else if (bd.type === 'SKIP' && bd.signal) {
+          // Show significant SKIP decisions (score > 20 = was close to entry)
+          if (Math.abs(bd.signal.score || 0) > 20) {
+            history.push({
+              timestamp: bd.timestamp, time: bdTime, type: 'SKIP',
+              action: bd.action || `SKIP`,
+              reason: `스코어 ${bd.signal.score} (신뢰도 ${((bd.signal.confidence || 0) * 100).toFixed(0)}%) — ${bd.reason || '기준 미달'}`,
+            });
+          }
+        } else if (bd.type === 'TRADE') {
+          // Bot's trade decisions (may overlap with fills — dedup by checking time proximity)
+          const hasMatchingFill = history.some(h => h.type === 'ENTRY' || h.type === 'EXIT' ? Math.abs(h.time - bdTime) < 60000 : false);
+          if (!hasMatchingFill) {
+            history.push({
+              timestamp: bd.timestamp, time: bdTime, type: bd.action?.includes('CLOSE') ? 'EXIT' : 'ENTRY',
+              action: bd.action || 'TRADE', reason: bd.reason || '',
+            });
+          }
+        }
+      }
+
       // Sort newest first
       history.sort((a, b) => b.time - a.time);
 
@@ -1594,16 +1648,28 @@
           reason: `시그널 기반 진입. PnL: $${pos.pnl.toFixed(2)} (${pnlPercent}%). TP/SL 자동 설정.`,
           emoji: pos.pnl >= 0 ? '📈' : '📉' };
       } else {
+        // Use latest bot PERIODIC decision for real signal scores
+        const latestPeriodic = botDecisions.filter(d => d.type === 'PERIODIC').pop();
+        const btcSigScore = latestPeriodic?.signals?.BTC?.score || 0;
+        const ethSigScore = latestPeriodic?.signals?.ETH?.score || 0;
+        const btcSigDir = latestPeriodic?.signals?.BTC?.direction || 'NEUTRAL';
+        const ethSigDir = latestPeriodic?.signals?.ETH?.direction || 'NEUTRAL';
+
         currentDecision = { status: 'WAITING', action: '포지션 없음 - 관망',
-          reason: `시그널 기준 미달. 관망 대기 중.\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⚠️ 리스크 관리: 불확실한 장에서 명확한 기회 대기 중.`,
+          reason: `🤖 봇 시그널: BTC ${btcSigDir}(${btcSigScore}) / ETH ${ethSigDir}(${ethSigScore})\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⏳ 진입 기준: 시그널 스코어 ±${config_entryThreshold} 이상 필요.`,
           emoji: '⏳' };
       }
 
       const btcWhaleScore = Math.max(btcLong, btcShort) / (btcLong + btcShort || 1) * 100;
       const ethWhaleScore = Math.max(ethLong, ethShort) / (ethLong + ethShort || 1) * 100;
-      // BTC/ETH 스코어: 고래 컨센서스 비율 기반 (하드코딩 없음)
-      currentDecision.btcScore = Math.round(btcWhaleScore);
-      currentDecision.ethScore = Math.round(ethWhaleScore);
+
+      // BTC/ETH 스코어: 봇 시그널 스코어 + 고래 컨센서스 혼합
+      const latestBotPeriodic = botDecisions.filter(d => d.type === 'PERIODIC').pop();
+      const botBtcScore = latestBotPeriodic?.signals?.BTC?.score;
+      const botEthScore = latestBotPeriodic?.signals?.ETH?.score;
+      // 봇 시그널이 있으면 사용, 없으면 고래 스코어 fallback
+      currentDecision.btcScore = botBtcScore != null ? Math.abs(Math.round(botBtcScore)) : Math.round(btcWhaleScore);
+      currentDecision.ethScore = botEthScore != null ? Math.abs(Math.round(botEthScore)) : Math.round(ethWhaleScore);
       currentDecision.btcWhale = `${btcLong}L/${btcShort}S`;
       currentDecision.ethWhale = `${ethLong}L/${ethShort}S`;
 
