@@ -996,7 +996,7 @@
           const w = sig.whale;
           const wDir = w.direction || '?';
           const wCount = w.whaleCount || 0;
-          const wTotal = w.totalWhales || 14;
+          const wTotal = w.totalWhales || WATCHED_WHALES.length;
           rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">고래 합의</span><span>${wDir} (${wCount}/${wTotal}명)</span></div>`);
         }
 
@@ -1168,11 +1168,14 @@
     // ---- apiData ----
     async function apiData() {
       // Fetch core data (separate fills to avoid blocking if it fails)
-      const [perpState, spotState, prices] = await Promise.all([
-        hlFetch({ type: 'clearinghouseState', user: WALLET }),
+      const [rawPerpState, rawSpotState, rawPrices] = await Promise.all([
+        hlFetch({ type: 'clearinghouseState', user: WALLET }).catch(() => null),
         hlFetch({ type: 'spotClearinghouseState', user: WALLET }).catch(() => ({ balances: [] })),
-        hlFetch({ type: 'allMids' }),
+        hlFetch({ type: 'allMids' }).catch(() => ({})),
       ]);
+      const perpState = rawPerpState || { marginSummary: { accountValue: '0' }, assetPositions: [] };
+      const spotState = rawSpotState || { balances: [] };
+      const prices = rawPrices || {};
 
       // Fetch fills separately with fallback (may fail for new wallets)
       let myFills = [];
@@ -1432,14 +1435,18 @@
     // ---- apiDecisions ----
     async function apiDecisions() {
       // Fetch all data in parallel: account, prices, fills, whale accounts
-      const [account, prices, fills, ...whaleAccounts] = await Promise.all([
-        hlFetch({ type: 'clearinghouseState', user: WALLET }),
-        hlFetch({ type: 'allMids' }),
+      const [rawAccount, rawPrices, rawFills, ...whaleAccounts] = await Promise.all([
+        hlFetch({ type: 'clearinghouseState', user: WALLET }).catch(() => null),
+        hlFetch({ type: 'allMids' }).catch(() => ({})),
         hlFetch({ type: 'userFills', user: WALLET }).catch(() => []),
         ...WATCHED_WHALES.map(addr =>
           hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
         ),
       ]);
+
+      const account = rawAccount || { marginSummary: { accountValue: '0' }, assetPositions: [] };
+      const prices = rawPrices || {};
+      const fills = Array.isArray(rawFills) ? rawFills : [];
 
       const accountValue = parseFloat(account.marginSummary?.accountValue || 0);
       const positions = (account.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => ({
@@ -1551,7 +1558,7 @@
       } else {
         withPeriodic.push({ timestamp: new Date(now).toISOString(), time: now, type: 'CURRENT',
           action: '포지션 없음 - 관망',
-          reason: `📊 기술적 분석: 시그널 점수 45 미만. 추세/모멘텀/볼륨 불일치.` });
+          reason: `시그널 기준 미달. 관망 대기 중.` });
       }
 
       // Add actual trade events and periodic fillers
@@ -1571,7 +1578,7 @@
       if (history.length === 0) {
         for (let t = now - PERIODIC_GAP; t > now - 24*60*60*1000; t -= PERIODIC_GAP) {
           withPeriodic.push({ timestamp: new Date(t).toISOString(), time: t, type: 'PERIODIC',
-            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래 다수 숏 포지션.` });
+            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).` });
         }
         // System start
         withPeriodic.push({ timestamp: new Date(now - 24*60*60*1000).toISOString(), time: now - 24*60*60*1000,
@@ -1588,15 +1595,15 @@
           emoji: pos.pnl >= 0 ? '📈' : '📉' };
       } else {
         currentDecision = { status: 'WAITING', action: '포지션 없음 - 관망',
-          reason: `📊 기술적 분석: 시그널 점수 45 미만. 추세/모멘텀/볼륨 불일치.\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⚠️ 리스크 관리: 불확실한 장에서 명확한 기회 대기 중.`,
+          reason: `시그널 기준 미달. 관망 대기 중.\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⚠️ 리스크 관리: 불확실한 장에서 명확한 기회 대기 중.`,
           emoji: '⏳' };
       }
 
       const btcWhaleScore = Math.max(btcLong, btcShort) / (btcLong + btcShort || 1) * 100;
       const ethWhaleScore = Math.max(ethLong, ethShort) / (ethLong + ethShort || 1) * 100;
-      const techScore = 38;
-      currentDecision.btcScore = Math.round(techScore * 0.75 + btcWhaleScore * 0.25);
-      currentDecision.ethScore = Math.round(techScore * 0.75 + ethWhaleScore * 0.25);
+      // BTC/ETH 스코어: 고래 컨센서스 비율 기반 (하드코딩 없음)
+      currentDecision.btcScore = Math.round(btcWhaleScore);
+      currentDecision.ethScore = Math.round(ethWhaleScore);
       currentDecision.btcWhale = `${btcLong}L/${btcShort}S`;
       currentDecision.ethWhale = `${ethLong}L/${ethShort}S`;
 
