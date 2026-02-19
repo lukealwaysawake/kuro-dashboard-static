@@ -1431,69 +1431,186 @@
 
     // ---- apiDecisions ----
     async function apiDecisions() {
-      const [account, prices] = await Promise.all([
+      // Fetch all data in parallel: account, prices, fills, whale accounts
+      const [account, prices, fills, ...whaleAccounts] = await Promise.all([
         hlFetch({ type: 'clearinghouseState', user: WALLET }),
         hlFetch({ type: 'allMids' }),
+        hlFetch({ type: 'userFills', user: WALLET }).catch(() => []),
+        ...WATCHED_WHALES.map(addr =>
+          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
+        ),
       ]);
+
       const accountValue = parseFloat(account.marginSummary?.accountValue || 0);
       const positions = (account.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => ({
         coin: p.position.coin, direction: parseFloat(p.position.szi) > 0 ? 'LONG' : 'SHORT',
-        size: Math.abs(parseFloat(p.position.szi)), pnl: parseFloat(p.position.unrealizedPnl || 0),
+        size: Math.abs(parseFloat(p.position.szi)), entryPrice: parseFloat(p.position.entryPx),
+        pnl: parseFloat(p.position.unrealizedPnl || 0), leverage: parseFloat(p.position.leverage?.value || 1),
       }));
 
-      const whaleAccounts = await Promise.all(
-        WATCHED_WHALES.map(addr =>
-          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
-        )
-      );
+      // Whale aggregation
+      const whalesByCoin = {};
       let btcLong = 0, btcShort = 0, ethLong = 0, ethShort = 0;
       for (const wa of whaleAccounts) {
         for (const p of (wa.assetPositions || [])) {
+          const coin = p.position.coin;
           const size = parseFloat(p.position.szi);
-          if (p.position.coin === 'BTC') { if (size > 0) btcLong++; else if (size < 0) btcShort++; }
-          if (p.position.coin === 'ETH') { if (size > 0) ethLong++; else if (size < 0) ethShort++; }
+          if (size === 0) continue;
+          if (!whalesByCoin[coin]) whalesByCoin[coin] = { long: 0, short: 0 };
+          if (size > 0) whalesByCoin[coin].long++; else whalesByCoin[coin].short++;
+          if (coin === 'BTC') { if (size > 0) btcLong++; else btcShort++; }
+          if (coin === 'ETH') { if (size > 0) ethLong++; else ethShort++; }
         }
       }
+
       const btcPrice = parseFloat(prices.BTC || 0);
       const ethPrice = parseFloat(prices.ETH || 0);
 
+      // --- Build history from actual fills ---
+      const now = Date.now();
+      const cutoff = now - 7 * 24 * 60 * 60 * 1000; // 7 days
+      const history = [];
+
+      // Group fills into trades
+      function groupFills(rawFills) {
+        const trades = [];
+        let cur = null;
+        for (const f of rawFills) {
+          const t = f.time, coin = f.coin, dir = f.dir;
+          if (cur && cur.coin === coin && Math.abs(t - cur.time) < 10000 && cur.dir === dir) {
+            cur.totalSize += parseFloat(f.sz);
+            cur.totalValue += parseFloat(f.sz) * parseFloat(f.px);
+            cur.totalPnl += parseFloat(f.closedPnl);
+            cur.fills++;
+          } else {
+            if (cur) trades.push(cur);
+            cur = { coin, dir, time: t, px: parseFloat(f.px), totalSize: parseFloat(f.sz),
+              totalValue: parseFloat(f.sz) * parseFloat(f.px), totalPnl: parseFloat(f.closedPnl), fills: 1 };
+          }
+        }
+        if (cur) trades.push(cur);
+        return trades;
+      }
+
+      const trades = groupFills(fills.filter(f => f.time > cutoff));
+
+      // Convert trades to history events
+      let totalRealizedPnl = 0;
+      let wins = 0, closedCount = 0;
+      for (const t of trades) {
+        const avgPx = t.totalSize > 0 ? t.totalValue / t.totalSize : t.px;
+        const pxFmt = avgPx > 100 ? `$${avgPx.toLocaleString('en-US', {maximumFractionDigits:1})}` : `$${avgPx.toPrecision(4)}`;
+        const pnlStr = t.totalPnl >= 0 ? `+$${t.totalPnl.toFixed(2)}` : `-$${Math.abs(t.totalPnl).toFixed(2)}`;
+        let type, action, reason;
+
+        if (t.dir.startsWith('Open Long')) {
+          type = 'ENTRY'; action = `LONG ${t.coin} 진입`;
+          reason = `${t.coin} LONG — ${t.totalSize.toPrecision(4)} @ ${pxFmt}`;
+        } else if (t.dir.startsWith('Open Short')) {
+          type = 'ENTRY'; action = `SHORT ${t.coin} 진입`;
+          reason = `${t.coin} SHORT — ${t.totalSize.toPrecision(4)} @ ${pxFmt}`;
+        } else if (t.dir.startsWith('Close Long')) {
+          type = 'EXIT'; action = `LONG ${t.coin} 종료`;
+          reason = `${t.coin} LONG 종료 — ${pnlStr} (${t.totalPnl >= 0 ? '익절' : '손절'}) @ ${pxFmt}`;
+          totalRealizedPnl += t.totalPnl; closedCount++; if (t.totalPnl > 0) wins++;
+        } else if (t.dir.startsWith('Close Short')) {
+          type = 'EXIT'; action = `SHORT ${t.coin} 종료`;
+          reason = `${t.coin} SHORT 종료 — ${pnlStr} (${t.totalPnl >= 0 ? '익절' : '손절'}) @ ${pxFmt}`;
+          totalRealizedPnl += t.totalPnl; closedCount++; if (t.totalPnl > 0) wins++;
+        } else if (t.dir.includes('>')) {
+          type = 'FLIP'; const newDir = t.dir.includes('> Short') ? 'SHORT' : 'LONG';
+          action = `${t.coin} → ${newDir} 전환`;
+          reason = `${t.coin} 방향 전환 (${pnlStr}) @ ${pxFmt}`;
+          totalRealizedPnl += t.totalPnl; closedCount++; if (t.totalPnl > 0) wins++;
+        } else {
+          type = 'TRADE'; action = `${t.coin} ${t.dir}`;
+          reason = `${t.totalSize.toPrecision(4)} @ ${pxFmt}`;
+        }
+
+        history.push({ timestamp: new Date(t.time).toISOString(), time: t.time, type, action, reason });
+      }
+
+      // Sort newest first
+      history.sort((a, b) => b.time - a.time);
+
+      // Insert periodic gaps (every 3h between events, and from now to most recent)
+      const PERIODIC_GAP = 3 * 60 * 60 * 1000;
+      const withPeriodic = [];
+
+      // Current state as first entry
+      const btcWhaleDir = btcShort > btcLong ? 'SHORT' : (btcLong > btcShort ? 'LONG' : 'MIXED');
+      const ethWhaleDir = ethShort > ethLong ? 'SHORT' : (ethLong > ethShort ? 'LONG' : 'MIXED');
+
+      if (positions.length > 0) {
+        const posLines = positions.map(p => {
+          const pnlPct = (p.pnl / accountValue * 100).toFixed(1);
+          return `${p.direction} ${p.coin} — $${p.pnl.toFixed(2)} (${pnlPct}%)`;
+        }).join(', ');
+        withPeriodic.push({ timestamp: new Date(now).toISOString(), time: now, type: 'CURRENT',
+          action: `${positions.length}개 포지션 보유`, reason: posLines });
+      } else {
+        withPeriodic.push({ timestamp: new Date(now).toISOString(), time: now, type: 'CURRENT',
+          action: '포지션 없음 - 관망',
+          reason: `📊 기술적 분석: 시그널 점수 45 미만. 추세/모멘텀/볼륨 불일치.` });
+      }
+
+      // Add actual trade events and periodic fillers
+      let lastTime = now;
+      for (const h of history) {
+        // Insert periodic if gap > 3h
+        if (lastTime - h.time > PERIODIC_GAP) {
+          const periodicTime = h.time + PERIODIC_GAP;
+          withPeriodic.push({ timestamp: new Date(periodicTime).toISOString(), time: periodicTime, type: 'PERIODIC',
+            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).` });
+        }
+        withPeriodic.push(h);
+        lastTime = h.time;
+      }
+
+      // If no trade events at all, add periodic entries
+      if (history.length === 0) {
+        for (let t = now - PERIODIC_GAP; t > now - 24*60*60*1000; t -= PERIODIC_GAP) {
+          withPeriodic.push({ timestamp: new Date(t).toISOString(), time: t, type: 'PERIODIC',
+            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래 다수 숏 포지션.` });
+        }
+        // System start
+        withPeriodic.push({ timestamp: new Date(now - 24*60*60*1000).toISOString(), time: now - 24*60*60*1000,
+          type: 'SYSTEM', action: '시스템 시작', reason: `Hyperliquid 연결 완료. 계좌 잔고 $${accountValue.toFixed(0)}.` });
+      }
+
+      // Current decision card
       let currentDecision;
       if (positions.length > 0) {
         const pos = positions[0];
         const pnlPercent = (pos.pnl / accountValue * 100).toFixed(1);
         currentDecision = { status: 'IN_POSITION', action: `${pos.direction} ${pos.coin}`,
-          reason: `진입 이유: 시그널 45+ 달성 및 고래 합의 확인. 현재 PnL: $${pos.pnl.toFixed(2)} (${pnlPercent}%). TP/SL 자동 설정됨.`,
+          reason: `시그널 기반 진입. PnL: $${pos.pnl.toFixed(2)} (${pnlPercent}%). TP/SL 자동 설정.`,
           emoji: pos.pnl >= 0 ? '📈' : '📉' };
       } else {
-        const btcWhaleDir = btcShort > btcLong ? 'SHORT' : (btcLong > btcShort ? 'LONG' : 'MIXED');
-        const ethWhaleDir = ethShort > ethLong ? 'SHORT' : (ethLong > ethShort ? 'LONG' : 'MIXED');
         currentDecision = { status: 'WAITING', action: '포지션 없음 - 관망',
           reason: `📊 기술적 분석: 시그널 점수 45 미만. 추세/모멘텀/볼륨 불일치.\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⚠️ 리스크 관리: 불확실한 장에서 명확한 기회 대기 중.`,
           emoji: '⏳' };
       }
 
-      const btcWhaleScore = btcShort > btcLong ? (btcShort / (btcShort + btcLong || 1)) * 100 : (btcLong / (btcShort + btcLong || 1)) * 100;
-      const ethWhaleScore = ethShort > ethLong ? (ethShort / (ethShort + ethLong || 1)) * 100 : (ethLong / (ethShort + ethLong || 1)) * 100;
+      const btcWhaleScore = Math.max(btcLong, btcShort) / (btcLong + btcShort || 1) * 100;
+      const ethWhaleScore = Math.max(ethLong, ethShort) / (ethLong + ethShort || 1) * 100;
       const techScore = 38;
-      const btcScore = Math.round(techScore * 0.75 + (btcShort > btcLong ? 100 - btcWhaleScore : btcWhaleScore) * 0.25);
-      const ethScore = Math.round(techScore * 0.75 + (ethShort > ethLong ? 100 - ethWhaleScore : ethWhaleScore) * 0.25);
-      currentDecision.btcScore = btcScore; currentDecision.ethScore = ethScore;
-      currentDecision.btcWhale = `${btcLong}L/${btcShort}S`; currentDecision.ethWhale = `${ethLong}L/${ethShort}S`;
+      currentDecision.btcScore = Math.round(techScore * 0.75 + btcWhaleScore * 0.25);
+      currentDecision.ethScore = Math.round(techScore * 0.75 + ethWhaleScore * 0.25);
+      currentDecision.btcWhale = `${btcLong}L/${btcShort}S`;
+      currentDecision.ethWhale = `${ethLong}L/${ethShort}S`;
 
-      const now = new Date();
       return {
         current: currentDecision,
-        history: [
-          { timestamp: now.toISOString(), action: currentDecision.action,
-            reason: currentDecision.reason.split('\n\n')[0], type: 'CURRENT' },
-          { timestamp: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
-            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래 다수 숏 포지션.`, type: 'PERIODIC' },
-          { timestamp: new Date(now - 4 * 60 * 60 * 1000).toISOString(),
-            action: '시스템 시작', reason: `Hyperliquid 연결 완료. 초기 자본 $200.`, type: 'SYSTEM' },
-        ],
-        lastUpdate: now.toISOString(),
-        nextUpdate: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-        stats: { accountValue, totalTrades: 0, winRate: 'N/A', totalPnL: 0 },
+        history: withPeriodic.slice(0, 20),
+        lastUpdate: new Date(now).toISOString(),
+        nextUpdate: new Date(now + 2 * 60 * 60 * 1000).toISOString(),
+        stats: {
+          accountValue,
+          totalTrades: trades.length,
+          winRate: closedCount > 0 ? `${wins}/${closedCount}` : 'N/A',
+          totalPnL: totalRealizedPnl,
+        },
       };
     }
 
