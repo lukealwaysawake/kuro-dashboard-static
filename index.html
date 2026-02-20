@@ -306,6 +306,33 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    /* Page Tabs */
+    .page-tabs { display: flex; gap: 4px; }
+    .page-tab {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;
+    }
+    .page-tab.active { background: var(--green); color: #000; border-color: var(--green); }
+    .page-tab:hover:not(.active) { color: var(--text); border-color: var(--text); }
+
+    /* Analytics page */
+    .analytics-page { display: none; }
+    .analytics-page.active { display: block; }
+    .profile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 16px 0; }
+    .profile-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    }
+    .profile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .profile-name { font-size: 16px; font-weight: 700; }
+    .profile-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+    .profile-stat { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .profile-stat:last-child { border: none; }
+    .profile-stat .label { color: var(--muted); }
+    .profile-stat .value { font-weight: 600; }
+    .consensus-chart { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; }
+    .heatmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; overflow-x: auto; }
+    .heatmap-cell { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; }
+
     .chart-tabs {
       display: flex;
       gap: 2px;
@@ -388,11 +415,17 @@
     <header class="header">
       <div class="title">🤖 Kuro Trading</div>
       <div style="display:flex;align-items:center;gap:16px;">
+        <div class="page-tabs">
+          <button class="page-tab active" onclick="switchPage('trading')">📊 Trading</button>
+          <button class="page-tab" onclick="switchPage('analytics')">🐋 Whale Analytics</button>
+        </div>
         <span class="status">Hyperliquid Mainnet</span>
         <button class="refresh-btn" onclick="refresh()">↻ Refresh</button>
       </div>
     </header>
 
+    <!-- Trading Page -->
+    <div id="trading-page" class="trading-page active">
     <!-- Stats Bar -->
     <div class="stats-bar">
       <div class="stat">
@@ -563,6 +596,34 @@
         </table>
       </div>
     </div>
+
+    </div><!-- /trading-page -->
+
+    <!-- Analytics Page -->
+    <div id="analytics-page" class="analytics-page">
+      <div class="stats-bar" id="analytics-stats">
+        <div class="stat-item"><span class="stat-label">Total Trades</span><span class="stat-value" id="a-total-trades">--</span></div>
+        <div class="stat-item"><span class="stat-label">Round Trips</span><span class="stat-value" id="a-round-trips">--</span></div>
+        <div class="stat-item"><span class="stat-label">Avg Win Rate</span><span class="stat-value green" id="a-avg-wr">--</span></div>
+        <div class="stat-item"><span class="stat-label">Whales Tracked</span><span class="stat-value" id="a-whale-count">--</span></div>
+      </div>
+
+      <!-- Whale Profiles -->
+      <div class="section"><div class="section-title"><span>🐋 Whale Profiles</span></div></div>
+      <div class="profile-grid" id="profile-grid"></div>
+
+      <!-- Consensus History Chart -->
+      <div class="consensus-chart">
+        <div class="section-title"><span>📈 BTC/ETH Whale Consensus History</span></div>
+        <canvas id="consensus-chart" height="200"></canvas>
+      </div>
+
+      <!-- Trading Heatmap -->
+      <div class="heatmap-wrap">
+        <div class="section-title"><span>🔥 Trading Activity Heatmap (by hour KST)</span></div>
+        <div id="heatmap-container"></div>
+      </div>
+    </div><!-- /analytics-page -->
 
     <!-- Footer -->
     <div class="footer">
@@ -1777,10 +1838,153 @@
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
-    setInterval(fetchData, 30000);           // 30s — prices + whales (Allium)
-    setInterval(fetchDecision, 60000);        // 1min — decisions
-    setInterval(() => fetchPortfolio(currentRange), 60000);  // 1min — PnL chart
-    setInterval(fetchWhaleFills, 120000);     // 2min — whale fills (Allium)
+    setInterval(fetchData, 30000);
+    setInterval(fetchDecision, 60000);
+    setInterval(() => fetchPortfolio(currentRange), 60000);
+    setInterval(fetchWhaleFills, 120000);
+
+    // ============================================================
+    // PAGE TABS
+    // ============================================================
+    function switchPage(page) {
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.page-tab[onclick*="${page}"]`).classList.add('active');
+      document.getElementById('trading-page').style.display = page === 'trading' ? 'block' : 'none';
+      document.getElementById('analytics-page').style.display = page === 'analytics' ? 'block' : 'none';
+      if (page === 'analytics' && !window._analyticsLoaded) loadAnalytics();
+    }
+    window.switchPage = switchPage;
+
+    // ============================================================
+    // ANALYTICS TAB
+    // ============================================================
+    let consensusChart = null;
+
+    async function loadAnalytics() {
+      try {
+        const res = await fetch('./data/whale-analytics.json?t=' + Date.now());
+        if (!res.ok) return;
+        const data = await res.json();
+        window._analyticsLoaded = true;
+
+        // Stats
+        document.getElementById('a-total-trades').textContent = (data.stats.totalTrades || 0).toLocaleString();
+        document.getElementById('a-round-trips').textContent = (data.stats.totalRoundTrips || 0).toLocaleString();
+        document.getElementById('a-avg-wr').textContent = (data.stats.avgWinRate || 0) + '%';
+        document.getElementById('a-whale-count').textContent = data.stats.profileCount || 0;
+
+        // Profiles
+        renderProfiles(data.profiles || []);
+        // Consensus chart
+        renderConsensus(data.consensus || []);
+        // Heatmap
+        renderHeatmap(data.heatmap || []);
+      } catch(e) { console.error('Analytics load error:', e); }
+    }
+
+    function renderProfiles(profiles) {
+      const grid = document.getElementById('profile-grid');
+      grid.innerHTML = profiles.map((p, i) => {
+        const wr = ((p.win_rate || 0) * 100).toFixed(1);
+        const wrColor = p.win_rate > 0.5 ? 'var(--green)' : 'var(--red)';
+        const style = p.trading_style === 'day_trader' ? '⚡ Day' : p.trading_style === 'swing_trader' ? '🌊 Swing' : '📊 ' + (p.trading_style || '?');
+        const pnlSign = (p.total_pnl || 0) >= 0 ? '+' : '';
+        const pnlColor = (p.total_pnl || 0) >= 0 ? 'var(--green)' : 'var(--red)';
+        const topAssets = (p.top_assets || []).map(a => `${a.coin}(${a.trades})`).join(', ') || '-';
+        const skillBg = p.skill_weight > 1.2 ? 'var(--green)' : p.skill_weight > 0.9 ? '#f59e0b' : 'var(--red)';
+        return `
+          <div class="profile-card">
+            <div class="profile-header">
+              <span class="profile-name">🐋 Whale ${i + 1}</span>
+              <span class="profile-badge" style="background:${skillBg};color:#000">${style}</span>
+            </div>
+            <div class="profile-stat"><span class="label">Address</span><span class="value" style="font-family:monospace;font-size:11px">${p.address}</span></div>
+            <div class="profile-stat"><span class="label">Win Rate</span><span class="value" style="color:${wrColor}">${wr}%</span></div>
+            <div class="profile-stat"><span class="label">Round Trips</span><span class="value">${p.total_round_trips || 0}</span></div>
+            <div class="profile-stat"><span class="label">Total PnL</span><span class="value" style="color:${pnlColor}">${pnlSign}$${(p.total_pnl || 0).toFixed(2)}</span></div>
+            <div class="profile-stat"><span class="label">Profit Factor</span><span class="value">${(p.profit_factor || 0).toFixed(2)}</span></div>
+            <div class="profile-stat"><span class="label">Avg Hold</span><span class="value">${p.hold_time_hours || 0}h</span></div>
+            <div class="profile-stat"><span class="label">Bias</span><span class="value">${((p.long_bias || 0) * 100).toFixed(0)}% Long</span></div>
+            <div class="profile-stat"><span class="label">Top Assets</span><span class="value" style="font-size:11px">${topAssets}</span></div>
+            <div class="profile-stat"><span class="label">Skill Weight</span><span class="value" style="color:${skillBg}">${(p.skill_weight || 1).toFixed(2)}x</span></div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderConsensus(data) {
+      if (!data.length) return;
+      const ctx = document.getElementById('consensus-chart').getContext('2d');
+      if (consensusChart) consensusChart.destroy();
+
+      const labels = data.map(d => d.time);
+      consensusChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'BTC Long', data: data.map(d => d.btc.long),
+              borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)',
+              fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0,
+            },
+            {
+              label: 'BTC Short', data: data.map(d => -d.btc.short),
+              borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',
+              fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0,
+            },
+            {
+              label: 'ETH Long', data: data.map(d => d.eth.long),
+              borderColor: '#3b82f6', borderDash: [5, 3],
+              tension: 0.3, borderWidth: 1.5, pointRadius: 0,
+            },
+            {
+              label: 'ETH Short', data: data.map(d => -d.eth.short),
+              borderColor: '#f97316', borderDash: [5, 3],
+              tension: 0.3, borderWidth: 1.5, pointRadius: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: {
+              type: 'time', time: { unit: 'hour', displayFormats: { hour: 'M/d HH:mm' } },
+              grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', maxTicksLimit: 12 },
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' },
+              title: { display: true, text: 'Long ↑ / Short ↓', color: '#888' },
+            },
+          },
+          plugins: { legend: { labels: { color: '#ccc', font: { size: 11 } } } },
+        },
+      });
+    }
+
+    function renderHeatmap(data) {
+      const container = document.getElementById('heatmap-container');
+      if (!data.length) { container.innerHTML = '<p style="color:var(--muted)">No data</p>'; return; }
+
+      const maxVal = Math.max(...data.flatMap(d => d.hours));
+      const hours = Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}`);
+
+      let html = '<table style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;color:var(--muted);font-size:11px;padding:4px">Coin</th>';
+      hours.forEach(h => html += `<th style="color:var(--muted);font-size:10px;padding:2px">${h}</th>`);
+      html += '<th style="color:var(--muted);font-size:10px;padding:4px">Total</th></tr></thead><tbody>';
+
+      for (const d of data) {
+        html += `<tr><td style="font-weight:600;font-size:12px;padding:4px">${d.coin}</td>`;
+        d.hours.forEach(v => {
+          const intensity = maxVal > 0 ? v / maxVal : 0;
+          const bg = intensity > 0.7 ? 'rgba(34,197,94,0.8)' : intensity > 0.4 ? 'rgba(34,197,94,0.4)' : intensity > 0.1 ? 'rgba(34,197,94,0.15)' : 'transparent';
+          html += `<td style="text-align:center"><span class="heatmap-cell" style="background:${bg}">${v || ''}</span></td>`;
+        });
+        html += `<td style="text-align:center;font-weight:600;font-size:12px">${d.total}</td></tr>`;
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
   </script>
 </body>
 </html>
