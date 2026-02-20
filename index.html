@@ -1252,7 +1252,7 @@
       try {
         const now = Date.now();
         const dayAgo = now - 24 * 60 * 60 * 1000;
-        const whaleAddrsToFetch = WATCHED_WHALES.slice(0, 6); // top 6 to limit API calls
+        const whaleAddrsToFetch = WATCHED_WHALES; // all 14 whales
         const whaleFillResults = await Promise.all(
           whaleAddrsToFetch.map(addr =>
             hlFetch({ type: 'userFills', user: addr }).then(fills =>
