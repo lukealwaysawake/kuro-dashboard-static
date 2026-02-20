@@ -1824,6 +1824,10 @@
             .slice(0, 30),
           ts: Date.now(),
         };
+        // Re-render trades table with fresh data
+        if (_whaleFillsCache.trades.length > 0) {
+          renderTrades(_whaleFillsCache.trades);
+        }
       } catch(e) { console.error('Whale fills error:', e); }
     }
 
@@ -2084,6 +2088,7 @@
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
+    setTimeout(fetchWhaleFills, 2000); // Initial whale fills (2s delay to avoid burst with fetchData)
     setInterval(fetchData, 30000);
     setInterval(fetchDecision, 60000);
     setInterval(() => fetchPortfolio(currentRange), 60000);
