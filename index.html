@@ -333,6 +333,20 @@
     .heatmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; overflow-x: auto; }
     .heatmap-cell { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; }
 
+    /* Weight Sliders */
+    .weight-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .weight-row:last-child { border: none; }
+    .weight-label { width: 140px; font-size: 12px; font-weight: 600; }
+    .weight-meta { width: 100px; font-size: 11px; color: var(--muted); }
+    .weight-slider { flex: 1; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
+    .weight-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--green); cursor: pointer; }
+    .weight-value { width: 50px; text-align: right; font-size: 13px; font-weight: 700; font-family: monospace; }
+    .weight-value.boosted { color: var(--green); }
+    .weight-value.nerfed { color: var(--red); }
+    .weight-value.neutral { color: var(--muted); }
+    .weight-toggle { background: none; border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .weight-toggle.disabled { opacity: 0.3; }
+
     .chart-tabs {
       display: flex;
       gap: 2px;
@@ -622,6 +636,19 @@
       <div class="heatmap-wrap">
         <div class="section-title"><span>🔥 Trading Activity Heatmap (by hour KST)</span></div>
         <div id="heatmap-container"></div>
+      </div>
+      <!-- Weight Adjustment -->
+      <div class="consensus-chart" style="margin-top:16px">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>⚖️ Whale Weight Adjustment</span>
+          <div style="display:flex;gap:8px">
+            <button class="refresh-btn" onclick="resetWeights()" style="font-size:11px">Reset All</button>
+            <button class="refresh-btn" onclick="applyWeights()" style="background:var(--green);color:#000;font-size:11px">💾 Apply to Bot</button>
+          </div>
+        </div>
+        <p style="color:var(--muted);font-size:11px;margin:4px 0 12px">슬라이더로 각 고래의 시그널 가중치를 조정합니다. Apply 버튼으로 봇에 반영됩니다.</p>
+        <div id="weight-sliders"></div>
+        <div id="weight-status" style="margin-top:8px;font-size:12px;color:var(--muted)"></div>
       </div>
     </div><!-- /analytics-page -->
 
@@ -1875,6 +1902,8 @@
 
         // Profiles
         renderProfiles(data.profiles || []);
+        // Weight sliders
+        renderWeightSliders(data.profiles || []);
         // Consensus chart
         renderConsensus(data.consensus || []);
         // Heatmap
@@ -1985,6 +2014,139 @@
       html += '</tbody></table>';
       container.innerHTML = html;
     }
+
+    // ============================================================
+    // WHALE WEIGHT ADJUSTMENT
+    // ============================================================
+    let _analyticsProfiles = [];
+    const WEIGHT_STORAGE_KEY = 'kuro_whale_weights';
+
+    function loadSavedWeights() {
+      try { return JSON.parse(localStorage.getItem(WEIGHT_STORAGE_KEY) || '{}'); } catch { return {}; }
+    }
+
+    function renderWeightSliders(profiles) {
+      _analyticsProfiles = profiles;
+      const saved = loadSavedWeights();
+      const container = document.getElementById('weight-sliders');
+
+      container.innerHTML = profiles.map((p, i) => {
+        const addr = p.address;
+        const savedW = saved[addr]?.weight;
+        const defaultW = (p.skill_weight || 1.0);
+        const currentW = savedW ?? defaultW;
+        const enabled = saved[addr]?.enabled !== false;
+        const wr = ((p.win_rate || 0) * 100).toFixed(0);
+        const cls = currentW > 1.05 ? 'boosted' : currentW < 0.95 ? 'nerfed' : 'neutral';
+
+        return `
+          <div class="weight-row">
+            <button class="weight-toggle ${enabled ? '' : 'disabled'}" onclick="toggleWhaleEnabled(${i})" title="Enable/Disable">
+              ${enabled ? '✅' : '⛔'}
+            </button>
+            <div class="weight-label">🐋 Whale ${i + 1} <span style="font-size:10px;color:var(--muted);font-family:monospace">${addr}</span></div>
+            <div class="weight-meta">WR ${wr}% · PF ${(p.profit_factor || 0).toFixed(1)}</div>
+            <input type="range" class="weight-slider" min="0" max="200" value="${Math.round(currentW * 100)}"
+              oninput="updateWeight(${i}, this.value)" ${!enabled ? 'disabled' : ''}>
+            <div class="weight-value ${cls}" id="wv-${i}">${currentW.toFixed(2)}x</div>
+          </div>`;
+      }).join('');
+    }
+
+    function updateWeight(idx, val) {
+      const w = val / 100;
+      const el = document.getElementById(`wv-${idx}`);
+      el.textContent = w.toFixed(2) + 'x';
+      el.className = 'weight-value ' + (w > 1.05 ? 'boosted' : w < 0.95 ? 'nerfed' : 'neutral');
+
+      // Save to localStorage
+      const saved = loadSavedWeights();
+      const addr = _analyticsProfiles[idx].address;
+      saved[addr] = { ...saved[addr], weight: w };
+      localStorage.setItem(WEIGHT_STORAGE_KEY, JSON.stringify(saved));
+    }
+    window.updateWeight = updateWeight;
+
+    function toggleWhaleEnabled(idx) {
+      const saved = loadSavedWeights();
+      const addr = _analyticsProfiles[idx].address;
+      const current = saved[addr]?.enabled !== false;
+      saved[addr] = { ...saved[addr], enabled: !current, weight: saved[addr]?.weight ?? _analyticsProfiles[idx].skill_weight ?? 1.0 };
+      localStorage.setItem(WEIGHT_STORAGE_KEY, JSON.stringify(saved));
+      renderWeightSliders(_analyticsProfiles); // re-render
+    }
+    window.toggleWhaleEnabled = toggleWhaleEnabled;
+
+    function resetWeights() {
+      localStorage.removeItem(WEIGHT_STORAGE_KEY);
+      renderWeightSliders(_analyticsProfiles);
+      document.getElementById('weight-status').textContent = '✅ Reset to computed defaults';
+    }
+    window.resetWeights = resetWeights;
+
+    async function applyWeights() {
+      const saved = loadSavedWeights();
+      if (Object.keys(saved).length === 0) {
+        document.getElementById('weight-status').textContent = '⚠️ No changes to apply';
+        return;
+      }
+
+      const statusEl = document.getElementById('weight-status');
+      statusEl.textContent = '⏳ Applying...';
+
+      // Write to GitHub repo via API (data/whale-overrides.json)
+      try {
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(saved, null, 2))));
+        const repo = 'lukealwaysawake/kuro-dashboard-static';
+        const path = 'data/whale-overrides.json';
+        const token = localStorage.getItem('github_token');
+
+        if (!token) {
+          // Fallback: copy to clipboard for manual apply
+          const json = JSON.stringify(saved, null, 2);
+          await navigator.clipboard.writeText(json);
+          statusEl.innerHTML = '📋 Copied to clipboard! Send to Kuro to apply.<br><code style="font-size:10px">' +
+            JSON.stringify(saved).slice(0, 80) + '...</code>';
+          return;
+        }
+
+        // Get current file SHA
+        const existing = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+          headers: { Authorization: `token ${token}` }
+        }).then(r => r.ok ? r.json() : null).catch(() => null);
+
+        await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+          method: 'PUT',
+          headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: 'Update whale weight overrides from dashboard UI',
+            content,
+            sha: existing?.sha,
+          })
+        });
+
+        statusEl.textContent = '✅ Applied! Bot will pick up changes within 5 minutes.';
+      } catch(e) {
+        const json = JSON.stringify(saved, null, 2);
+        await navigator.clipboard.writeText(json).catch(() => {});
+        statusEl.innerHTML = `⚠️ GitHub push failed. Config copied to clipboard.<br><small>${e.message}</small>`;
+      }
+    }
+    window.applyWeights = applyWeights;
+
+    // Hook into loadAnalytics to also render sliders
+    const _origLoadAnalytics = loadAnalytics;
+    loadAnalytics = async function() {
+      await _origLoadAnalytics();
+      // Re-render sliders with latest profiles
+      if (_analyticsProfiles.length === 0) {
+        try {
+          const res = await fetch('./data/whale-analytics.json?t=' + Date.now());
+          const data = await res.json();
+          renderWeightSliders(data.profiles || []);
+        } catch {}
+      }
+    };
   </script>
 </body>
 </html>
