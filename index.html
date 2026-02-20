@@ -566,7 +566,7 @@
 
     <!-- Footer -->
     <div class="footer">
-      Auto-refresh: 45s • Built by Kuro 🤖
+      Auto-refresh: 60s • Built by Kuro 🤖
     </div>
   </div>
 
@@ -1465,7 +1465,7 @@
     WATCHED_WHALES.forEach((addr, i) => whaleNameMap[addr] = `Whale ${i + 1}`);
 
     async function fetchWhaleFills() {
-      if (Date.now() - _whaleFillsCache.ts < 120000) return; // 2min cache
+      if (Date.now() - _whaleFillsCache.ts < 300000) return; // 5min cache
       try {
         const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
         // Fetch 3 whales at a time to avoid rate limits
@@ -1504,7 +1504,7 @@
 
     async function fetchWhaleData() {
       // Reuse if fresh (< 30s)
-      if (Date.now() - _whaleCache.ts < 30000 && _whaleCache.accounts.length > 0) return _whaleCache;
+      if (Date.now() - _whaleCache.ts < 60000 && _whaleCache.accounts.length > 0) return _whaleCache; // 1min cache
       const whaleAccounts = await Promise.all(
         WATCHED_WHALES.map(addr =>
           hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
@@ -1759,10 +1759,10 @@
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
-    setInterval(fetchData, 45000);          // 45s — prices, positions, whales
-    setInterval(fetchDecision, 120000);       // 2min — decisions (bot sync is 5min anyway)
-    setInterval(() => fetchPortfolio(currentRange), 90000); // 90s — PnL chart
-    setInterval(fetchWhaleFills, 120000);     // 2min — whale recent trades (separate to avoid 429)
+    setInterval(fetchData, 60000);           // 1min — prices, positions, whales
+    setInterval(fetchDecision, 180000);       // 3min — decisions
+    setInterval(() => fetchPortfolio(currentRange), 120000); // 2min — PnL chart
+    setInterval(fetchWhaleFills, 300000);     // 5min — whale recent trades
   </script>
 </body>
 </html>
