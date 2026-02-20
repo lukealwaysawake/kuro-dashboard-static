@@ -1245,11 +1245,39 @@
       }
       const aggregate = Object.values(coinMap).sort((a, b) => b.netValue - a.netValue);
 
-      const recentTrades = (Array.isArray(myFills) ? myFills : []).slice(-50).reverse().map(f => ({
-        time: f.time, coin: f.coin, direction: f.dir, size: parseFloat(f.sz),
-        price: parseFloat(f.px), value: parseFloat(f.sz) * parseFloat(f.px),
-        pnl: parseFloat(f.closedPnl || 0), fee: parseFloat(f.fee || 0),
-      }));
+      // Fetch recent whale fills (last 24h, top 30 by value)
+      const whaleFillsRaw = [];
+      const whaleNameMap = {};
+      WATCHED_WHALES.forEach((addr, i) => whaleNameMap[addr] = `Whale ${i + 1}`);
+      try {
+        const now = Date.now();
+        const dayAgo = now - 24 * 60 * 60 * 1000;
+        const whaleAddrsToFetch = WATCHED_WHALES.slice(0, 6); // top 6 to limit API calls
+        const whaleFillResults = await Promise.all(
+          whaleAddrsToFetch.map(addr =>
+            hlFetch({ type: 'userFills', user: addr }).then(fills =>
+              (Array.isArray(fills) ? fills : [])
+                .filter(f => new Date(f.time).getTime() > dayAgo)
+                .slice(-10)
+                .map(f => ({ ...f, _whale: addr }))
+            ).catch(() => [])
+          )
+        );
+        for (const fills of whaleFillResults) whaleFillsRaw.push(...fills);
+      } catch(e) { console.error('Whale fills error:', e); }
+
+      const recentTrades = whaleFillsRaw
+        .map(f => ({
+          time: f.time, coin: f.coin,
+          direction: f.side === 'B' ? 'LONG' : 'SHORT',
+          size: parseFloat(f.sz), price: parseFloat(f.px),
+          value: Math.abs(parseFloat(f.sz) * parseFloat(f.px)),
+          whale: whaleNameMap[f._whale] || f._whale?.slice(0, 6),
+          pnl: parseFloat(f.closedPnl || 0), fee: parseFloat(f.fee || 0),
+        }))
+        .filter(t => t.value >= 100) // filter dust trades
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+        .slice(0, 30);
 
       const copySignals = aggregate.filter(a => a.totalCount >= 5).map(a => {
         const direction = a.longCount > a.shortCount ? 'LONG' : a.shortCount > a.longCount ? 'SHORT' : 'NEUTRAL';
