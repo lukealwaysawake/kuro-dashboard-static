@@ -333,6 +333,27 @@
     .heatmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; overflow-x: auto; }
     .heatmap-cell { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; }
 
+    /* Algorithm Page */
+    .algo-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 16px 0; }
+    .algo-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .algo-flow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: stretch; margin: 16px 0; }
+    .algo-node { background: #1a1d23; border: 2px solid var(--border); border-radius: 12px; padding: 16px; min-width: 160px; max-width: 200px; text-align: center; position: relative; }
+    .algo-node.highlight { border-color: var(--green); box-shadow: 0 0 12px rgba(34,197,94,0.2); }
+    .algo-node.gate { border-color: #f59e0b; border-style: dashed; }
+    .algo-node .node-icon { font-size: 28px; margin-bottom: 6px; }
+    .algo-node .node-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .algo-node .node-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .algo-arrow { display: flex; align-items: center; font-size: 24px; color: var(--muted); }
+    .algo-weight-bar { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+    .algo-weight-bar .bar-label { width: 100px; font-size: 12px; color: var(--muted); }
+    .algo-weight-bar .bar-fill { height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; font-weight: 700; color: #000; }
+    .algo-weight-bar .bar-bg { flex: 1; background: #1a1d23; border-radius: 4px; overflow: hidden; }
+    .algo-gate-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    .algo-gate-table td, .algo-gate-table th { padding: 6px 10px; text-align: left; font-size: 12px; border-bottom: 1px solid var(--border); }
+    .algo-gate-table th { color: var(--muted); font-weight: 600; }
+    .algo-formula { background: #0d0f12; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; margin: 8px 0; overflow-x: auto; color: var(--green); }
+    @media (max-width: 768px) { .algo-flow { flex-direction: column; align-items: center; } .algo-node { max-width: 100%; } }
+
     /* Weight Sliders */
     .weight-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
     .weight-row:last-child { border: none; }
@@ -432,6 +453,7 @@
         <div class="page-tabs">
           <button class="page-tab active" onclick="switchPage('trading')">📊 Trading</button>
           <button class="page-tab" onclick="switchPage('analytics')">🐋 Whale Analytics</button>
+          <button class="page-tab" onclick="switchPage('algorithm')">🧠 Algorithm</button>
         </div>
         <span class="status">Hyperliquid Mainnet</span>
         <button class="refresh-btn" onclick="refresh()">↻ Refresh</button>
@@ -651,6 +673,203 @@
         <div id="weight-status" style="margin-top:8px;font-size:12px;color:var(--muted)"></div>
       </div>
     </div><!-- /analytics-page -->
+
+    <!-- Algorithm Page -->
+    <div id="algorithm-page" style="display:none">
+
+      <!-- 1. Overview Flow -->
+      <div class="algo-section">
+        <div class="algo-title">🧠 Algorithm Overview</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Kuro의 트레이딩 알고리즘은 고래 추적 + 기술적 분석을 결합한 다층 시그널 시스템입니다.</p>
+
+        <div class="algo-flow">
+          <div class="algo-node highlight">
+            <div class="node-icon">🐋</div>
+            <div class="node-title">Whale Tracking</div>
+            <div class="node-desc">14명의 고래 포지션을<br>15초마다 모니터링</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node">
+            <div class="node-icon">📊</div>
+            <div class="node-title">Technical Analysis</div>
+            <div class="node-desc">EMA, RSI, MACD, BB<br>+ MTF + Orderbook</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node">
+            <div class="node-icon">⚖️</div>
+            <div class="node-title">Signal Scoring</div>
+            <div class="node-desc">9개 컴포넌트<br>가중 합산 (-100~+100)</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node gate">
+            <div class="node-icon">🚧</div>
+            <div class="node-title">Safety Gates</div>
+            <div class="node-desc">Threshold + Confidence<br>+ R:R + RSI Filter</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node highlight">
+            <div class="node-icon">⚡</div>
+            <div class="node-title">Execution</div>
+            <div class="node-desc">Smart Entry (Limit→Market)<br>3-tier TP + Dynamic SL</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Signal Weights -->
+      <div class="algo-section">
+        <div class="algo-title">⚖️ Signal Component Weights</div>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:12px">각 컴포넌트 점수 (-100~+100)에 가중치를 곱해 합산합니다. 고래 30%가 가장 큰 비중.</p>
+
+        <div id="algo-weight-bars">
+          <!-- Filled by JS -->
+        </div>
+
+        <div class="algo-formula">
+          totalScore = Σ (component_score × weight)<br>
+          = trend×0.15 + momentum×0.15 + volume×0.10 + onchain×0.05<br>
+          &nbsp;&nbsp;+ <span style="color:#22c55e;font-weight:700">whale×0.30</span> + divergence×0.10 + mtf×0.10 + orderbook×0.05
+        </div>
+      </div>
+
+      <!-- 3. Whale Signal Pipeline -->
+      <div class="algo-section">
+        <div class="algo-title">🐋 Whale Signal Pipeline</div>
+
+        <div class="algo-flow">
+          <div class="algo-node">
+            <div class="node-icon">📡</div>
+            <div class="node-title">Position Scan</div>
+            <div class="node-desc">14 whales × Allium API<br>포지션 + 최근 fills</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node">
+            <div class="node-icon">📐</div>
+            <div class="node-title">Position Score</div>
+            <div class="node-desc">Long % vs Short %<br>-100 ~ +100</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node">
+            <div class="node-icon">🔄</div>
+            <div class="node-title">Momentum</div>
+            <div class="node-desc">최근 진입/이탈 방향<br>지수 감쇠 (λ=0.18)</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node">
+            <div class="node-icon">🧬</div>
+            <div class="node-title">Hybrid Score</div>
+            <div class="node-desc">Position 60%<br>+ Momentum 40%</div>
+          </div>
+          <div class="algo-arrow">→</div>
+          <div class="algo-node gate">
+            <div class="node-icon">📏</div>
+            <div class="node-title">Entry Distance</div>
+            <div class="node-desc">현재가 vs 고래 진입가<br>2%이내 = 풀, 10%+ = 감쇄</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="algo-formula">
+            whaleScore = hybrid × entryDistanceFactor<br>
+            hybrid = position × 0.60 + momentum × 0.40<br>
+            <br>
+            <span style="color:var(--muted)">// Burst Detection (3+ 고래 동시 진입 30분 내)</span><br>
+            if burst → momentum 가중치 0.40 → 최대 0.75로 시프트<br>
+            <span style="color:var(--muted)">// Skill Weight (프로필 기반)</span><br>
+            각 고래 기여도 = skill_weight × freshness × assetModifier
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Entry Gates -->
+      <div class="algo-section">
+        <div class="algo-title">🚧 Entry Safety Gates</div>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:12px">시그널이 발생해도 아래 게이트를 모두 통과해야 진입합니다.</p>
+
+        <table class="algo-gate-table">
+          <tr><th>Gate</th><th>조건</th><th>설명</th></tr>
+          <tr>
+            <td>① Score Threshold</td>
+            <td><code>|score| > 35</code></td>
+            <td>기본 35점. 레인징 +10, 볼라틸 +15 가산. MTF 불일치 시 +15</td>
+          </tr>
+          <tr>
+            <td>② Confidence Floor</td>
+            <td><code>confidence > 25%</code></td>
+            <td>모든 컴포넌트가 같은 방향이면 ×1.2 부스트</td>
+          </tr>
+          <tr>
+            <td>③ Risk:Reward</td>
+            <td><code>R:R ≥ 1.5</code></td>
+            <td>ATR 기반 SL/TP 거리 비율. 1.5 미만이면 스킵</td>
+          </tr>
+          <tr>
+            <td>④ RSI Filter</td>
+            <td><code>LONG: RSI < 75</code><br><code>SHORT: RSI > 25</code></td>
+            <td>극단 RSI에서 진입 차단 (soft: threshold +5, hard: 블록)</td>
+          </tr>
+          <tr>
+            <td>⑤ Direction Change</td>
+            <td><code>trigger only</code></td>
+            <td>방향 전환 시에만 진입 시도. 같은 방향 유지 중엔 대기</td>
+          </tr>
+          <tr>
+            <td>⑥ Position Limits</td>
+            <td><code>≤ 8 concurrent</code></td>
+            <td>최대 8개 동시 포지션. 같은 방향 최대 6개</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- 5. Execution -->
+      <div class="algo-section">
+        <div class="algo-title">⚡ Execution & Risk Management</div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+          <div style="background:#1a1d23;border-radius:8px;padding:14px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:8px">🎯 Smart Entry</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">
+              1. 고래 진입가 근처에 <strong style="color:var(--text)">Limit Order</strong> 배치<br>
+              2. 30초 타임아웃 → 미체결 시 <strong style="color:var(--text)">Market Order</strong> 전환<br>
+              3. 슬리피지: Limit 0% / Market 0.1%<br>
+            </div>
+          </div>
+          <div style="background:#1a1d23;border-radius:8px;padding:14px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:8px">🛡️ Stop Loss</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">
+              • 기본: ATR × 2.0 거리 (min 2%, max 6%)<br>
+              • <strong style="color:var(--text)">Dynamic</strong>: 변동성 확대 → SL 확장<br>
+              • <strong style="color:var(--text)">Momentum</strong>: 역방향 모멘텀 → SL 축소<br>
+              • <strong style="color:#ef4444">고래 이탈</strong>: 2+ 고래 클로즈 → 50% 즉시 청산<br>
+            </div>
+          </div>
+          <div style="background:#1a1d23;border-radius:8px;padding:14px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:8px">💰 Take Profit (3-tier)</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">
+              • TP1: ATR × 3.0 → <strong style="color:var(--green)">33% 청산</strong><br>
+              • TP2: ATR × 4.5 → <strong style="color:var(--green)">33% 청산</strong><br>
+              • TP3: Bollinger Band → <strong style="color:var(--green)">34% 청산</strong><br>
+              • 변동성 수축 시 TP 자동 축소<br>
+            </div>
+          </div>
+          <div style="background:#1a1d23;border-radius:8px;padding:14px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:8px">📏 Position Sizing</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">
+              • 기본: 잔액의 <strong style="color:var(--text)">2%</strong> 리스크/트레이드<br>
+              • Kelly Criterion: 충분한 거래 후 자동 조정<br>
+              • 레버리지: BTC/ETH/SOL <strong style="color:var(--text)">5x</strong>, 나머지 <strong style="color:var(--text)">2x</strong><br>
+              • Max drawdown: 15% → 거래 중단<br>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Current Config -->
+      <div class="algo-section">
+        <div class="algo-title">⚙️ Live Configuration</div>
+        <div id="algo-live-config" style="font-size:12px;color:var(--muted)">Loading...</div>
+      </div>
+
+    </div><!-- /algorithm-page -->
 
     <!-- Footer -->
     <div class="footer">
@@ -1876,8 +2095,10 @@
     function switchPage(page) {
       document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
       document.querySelector(`.page-tab[onclick*="${page}"]`).classList.add('active');
-      document.getElementById('trading-page').style.display = page === 'trading' ? 'block' : 'none';
-      document.getElementById('analytics-page').style.display = page === 'analytics' ? 'block' : 'none';
+      ['trading', 'analytics', 'algorithm'].forEach(p => {
+        const el = document.getElementById(p + '-page');
+        if (el) el.style.display = p === page ? 'block' : 'none';
+      });
       if (page === 'analytics' && !window._analyticsLoaded) loadAnalytics();
     }
     window.switchPage = switchPage;
@@ -2133,6 +2354,68 @@
       }
     }
     window.applyWeights = applyWeights;
+
+    // ============================================================
+    // ALGORITHM TAB
+    // ============================================================
+    (function renderAlgoWeights() {
+      const weights = [
+        { name: 'Whale Consensus', key: 'whale', w: 0.30, color: '#22c55e', desc: '14 고래 포지션 합의' },
+        { name: 'Trend (EMA)', key: 'trend', w: 0.15, color: '#3b82f6', desc: 'EMA 20/50/200 정렬' },
+        { name: 'Momentum', key: 'momentum', w: 0.15, color: '#8b5cf6', desc: 'RSI + MACD + Stochastic' },
+        { name: 'Multi-Timeframe', key: 'mtf', w: 0.10, color: '#06b6d4', desc: '1h 트렌드 + 15m 모멘텀 + 5m 진입' },
+        { name: 'Volume', key: 'volume', w: 0.10, color: '#f59e0b', desc: '거래량 이상 + OBV' },
+        { name: 'Divergence', key: 'divergence', w: 0.10, color: '#ec4899', desc: 'RSI/MACD 다이버전스' },
+        { name: 'On-chain', key: 'onchain', w: 0.05, color: '#14b8a6', desc: '온체인 메트릭스' },
+        { name: 'Orderbook', key: 'orderbook', w: 0.05, color: '#6366f1', desc: '호가창 불균형' },
+      ];
+
+      const container = document.getElementById('algo-weight-bars');
+      if (!container) return;
+      container.innerHTML = weights.map(w => `
+        <div class="algo-weight-bar">
+          <div class="bar-label">${w.name}</div>
+          <div class="bar-bg">
+            <div class="bar-fill" style="width:${w.w * 100 * 3.33}%;background:${w.color}">${(w.w * 100).toFixed(0)}%</div>
+          </div>
+          <div style="width:180px;font-size:11px;color:var(--muted);padding-left:8px">${w.desc}</div>
+        </div>`).join('');
+    })();
+
+    // Live config from decisions.json
+    async function loadAlgoConfig() {
+      try {
+        const res = await fetch('./data/decisions.json?t=' + Date.now());
+        const data = await res.json();
+        const cfg = data.config || {};
+        const el = document.getElementById('algo-live-config');
+        if (!el) return;
+        el.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+            <div style="background:#1a1d23;border-radius:6px;padding:10px">
+              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Entry Threshold</div>
+              <div style="font-size:18px;font-weight:700;color:var(--green)">${cfg.entryThreshold || 35}</div>
+              <div>+ Ranging: +10 | Volatile: +15</div>
+            </div>
+            <div style="background:#1a1d23;border-radius:6px;padding:10px">
+              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Leverage Tiers</div>
+              <div>BTC/ETH/SOL: <strong style="color:var(--text)">${cfg.leverageTiers?.BTC || 5}x</strong></div>
+              <div>Others: <strong style="color:var(--text)">${cfg.leverageTiers?.default || 2}x</strong></div>
+            </div>
+            <div style="background:#1a1d23;border-radius:6px;padding:10px">
+              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Max Positions</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text)">${cfg.maxPairs || 8}</div>
+              <div>Same direction: max 6</div>
+            </div>
+            <div style="background:#1a1d23;border-radius:6px;padding:10px">
+              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Decisions Synced</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text)">${(data.decisions || []).length}</div>
+              <div>Last: ${data.syncedAt ? new Date(data.syncedAt).toLocaleString('ko-KR') : '-'}</div>
+            </div>
+          </div>`;
+      } catch(e) { console.warn('Config load failed:', e); }
+    }
+    loadAlgoConfig();
 
     // Hook into loadAnalytics to also render sliders
     const _origLoadAnalytics = loadAnalytics;
