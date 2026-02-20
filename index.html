@@ -566,7 +566,7 @@
 
     <!-- Footer -->
     <div class="footer">
-      Auto-refresh: 60s • Built by Kuro 🤖
+      Auto-refresh: 30s • Built by Kuro 🤖
     </div>
   </div>
 
@@ -1145,6 +1145,8 @@
     // INLINE API CONSTANTS (must be defined before init calls)
     // ============================================================
     const HL_API = 'https://api.hyperliquid.xyz';
+    const ALLIUM_API = 'https://api.allium.so/api/v1/developer/trading/hyperliquid';
+    const ALLIUM_KEY = 'TBivNLFBD5OjafDRbd7QxhBcGEb2xt';
     const WALLET = '0xff48c5bEe24DD4905ef23DDdFe10F02FEf51F1dc';
     // Bot config (auto-synced from kuro-trading, fallback to defaults)
     window._botConfig = { entryThreshold: 35, weights: { trend: 0.15, momentum: 0.15, volume: 0.10, onchain: 0.05, whale: 0.30, divergence: 0.10, mtf: 0.10, orderbook: 0.05 }, leverageTiers: { BTC: 5, ETH: 5, SOL: 5, default: 2 }, maxPairs: 8 };
@@ -1166,6 +1168,7 @@
       '0x8bcf7a888c66f635ac4a2caf42a8dd12a3b20b14',
     ];
 
+    // HL direct — only for lightweight calls (allMids, own account)
     function hlFetch(body) {
       return fetch(`${HL_API}/info`, {
         method: 'POST',
@@ -1173,6 +1176,17 @@
         body: JSON.stringify(body),
       }).then(r => r.json());
     }
+
+    // Allium proxy — for heavy calls (whale positions, fills) — no rate limit
+    function alliumFetch(path, body) {
+      return fetch(`${ALLIUM_API}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-KEY': ALLIUM_KEY },
+        body: JSON.stringify(body),
+      }).then(r => r.json());
+    }
+    function alliumInfo(body) { return alliumFetch('/info', body); }
+    function alliumFills(body) { return alliumFetch('/info/fills', body); }
 
     // ---- apiData ----
     async function apiData() {
@@ -1465,7 +1479,7 @@
     WATCHED_WHALES.forEach((addr, i) => whaleNameMap[addr] = `Whale ${i + 1}`);
 
     async function fetchWhaleFills() {
-      if (Date.now() - _whaleFillsCache.ts < 300000) return; // 5min cache
+      if (Date.now() - _whaleFillsCache.ts < 120000) return; // 2min cache (Allium — no rate limit)
       try {
         const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
         // Fetch 3 whales at a time to avoid rate limits
@@ -1474,7 +1488,7 @@
           const batch = WATCHED_WHALES.slice(i, i + 3);
           const results = await Promise.all(
             batch.map(addr =>
-              hlFetch({ type: 'userFills', user: addr }).then(fills =>
+              alliumFills({ type: 'userFills', user: addr }).then(fills =>
                 (Array.isArray(fills) ? fills : [])
                   .filter(f => new Date(f.time).getTime() > dayAgo)
                   .slice(-5)
@@ -1503,11 +1517,11 @@
     }
 
     async function fetchWhaleData() {
-      // Reuse if fresh (< 30s)
-      if (Date.now() - _whaleCache.ts < 60000 && _whaleCache.accounts.length > 0) return _whaleCache; // 1min cache
+      if (Date.now() - _whaleCache.ts < 45000 && _whaleCache.accounts.length > 0) return _whaleCache;
+      // Allium for whale positions — no rate limit!
       const whaleAccounts = await Promise.all(
         WATCHED_WHALES.map(addr =>
-          hlFetch({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
+          alliumInfo({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
         )
       );
       const byCoin = {};
@@ -1759,10 +1773,10 @@
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
-    setInterval(fetchData, 60000);           // 1min — prices, positions, whales
-    setInterval(fetchDecision, 180000);       // 3min — decisions
-    setInterval(() => fetchPortfolio(currentRange), 120000); // 2min — PnL chart
-    setInterval(fetchWhaleFills, 300000);     // 5min — whale recent trades
+    setInterval(fetchData, 30000);           // 30s — prices + whales (Allium)
+    setInterval(fetchDecision, 60000);        // 1min — decisions
+    setInterval(() => fetchPortfolio(currentRange), 60000);  // 1min — PnL chart
+    setInterval(fetchWhaleFills, 120000);     // 2min — whale fills (Allium)
   </script>
 </body>
 </html>
