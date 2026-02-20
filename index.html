@@ -644,6 +644,20 @@
         <div class="stat-item"><span class="stat-label">Whales Tracked</span><span class="stat-value" id="a-whale-count">--</span></div>
       </div>
 
+      <!-- Whale Wallet Manager -->
+      <div class="algo-section" style="margin-top:12px">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📋 Whale Wallets (${_CORE_WHALES.length} core + custom)</span>
+        </div>
+        <div style="display:flex;gap:8px;margin:8px 0">
+          <input id="new-whale-addr" type="text" placeholder="0x... (Hyperliquid address)" style="flex:1;background:#1a1d23;border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:monospace;font-size:12px">
+          <input id="new-whale-label" type="text" placeholder="Label (optional)" style="width:120px;background:#1a1d23;border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:12px">
+          <button class="refresh-btn" onclick="addCustomWhale()" style="background:var(--green);color:#000;font-size:12px;white-space:nowrap">+ Add</button>
+        </div>
+        <div id="custom-whale-list"></div>
+        <div id="whale-add-status" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+      </div>
+
       <!-- Whale Profiles -->
       <div class="section"><div class="section-title"><span>🐋 Whale Profiles</span></div></div>
       <div class="profile-grid" id="profile-grid"></div>
@@ -1461,7 +1475,7 @@
     // Bot config (auto-synced from kuro-trading, fallback to defaults)
     window._botConfig = { entryThreshold: 35, weights: { trend: 0.15, momentum: 0.15, volume: 0.10, onchain: 0.05, whale: 0.30, divergence: 0.10, mtf: 0.10, orderbook: 0.05 }, leverageTiers: { BTC: 5, ETH: 5, SOL: 5, default: 2 }, maxPairs: 8 };
     const config_entryThreshold = () => window._botConfig?.entryThreshold || 35;
-    const WATCHED_WHALES = [
+    const _CORE_WHALES = [
       '0x3fc56e944aa7b1594c85861b2d46a07f82a2c0c1',
       '0x3ff54fd26855db3758d0b5ae7aed47440c47f705',
       '0x7a6d5fc57f6906f337c48fe2763c3a501304f79c',
@@ -1477,6 +1491,10 @@
       '0xe02e420ec55b4e03924d77c7b342c012541ba2d3',
       '0x8bcf7a888c66f635ac4a2caf42a8dd12a3b20b14',
     ];
+    function _loadCustomWhales() {
+      try { return JSON.parse(localStorage.getItem('kuro_custom_whales') || '[]'); } catch { return []; }
+    }
+    const WATCHED_WHALES = [..._CORE_WHALES, ..._loadCustomWhales().map(w => w.address).filter(a => !_CORE_WHALES.includes(a))];
 
     // HL direct — only for lightweight calls (allMids, own account)
     function hlFetch(body) {
@@ -1786,7 +1804,8 @@
     // Whale fills cache — fetched independently every 2min
     let _whaleFillsCache = { trades: [], ts: 0 };
     const whaleNameMap = {};
-    WATCHED_WHALES.forEach((addr, i) => whaleNameMap[addr] = `Whale ${i + 1}`);
+    _CORE_WHALES.forEach((addr, i) => whaleNameMap[addr] = `Whale ${i + 1}`);
+    _loadCustomWhales().forEach((w, i) => whaleNameMap[w.address] = w.label || `Custom ${i + 1}`);
 
     async function fetchWhaleFills() {
       if (Date.now() - _whaleFillsCache.ts < 120000) return; // 2min cache (Allium — no rate limit)
@@ -2424,6 +2443,61 @@
       } catch(e) { console.warn('Config load failed:', e); }
     }
     loadAlgoConfig();
+
+    // ============================================================
+    // CUSTOM WHALE MANAGEMENT
+    // ============================================================
+    function renderCustomWhales() {
+      const custom = _loadCustomWhales();
+      const el = document.getElementById('custom-whale-list');
+      if (!el) return;
+      if (!custom.length) { el.innerHTML = '<div style="font-size:11px;color:var(--muted)">No custom whales added. Core 14 whales are always tracked.</div>'; return; }
+      el.innerHTML = custom.map((w, i) => `
+        <div class="weight-row" style="padding:6px 0">
+          <span style="font-size:12px;font-weight:600;color:var(--green)">✦ Custom ${i + 1}</span>
+          <span style="font-family:monospace;font-size:11px;color:var(--muted);flex:1;margin:0 8px">${w.address.slice(0, 10)}...${w.address.slice(-6)}</span>
+          <span style="font-size:12px">${w.label || ''}</span>
+          <button class="refresh-btn" onclick="removeCustomWhale(${i})" style="font-size:10px;padding:2px 8px;color:var(--red);border-color:var(--red)">✕</button>
+        </div>`).join('');
+    }
+
+    function addCustomWhale() {
+      const addr = document.getElementById('new-whale-addr').value.trim().toLowerCase();
+      const label = document.getElementById('new-whale-label').value.trim();
+      const status = document.getElementById('whale-add-status');
+
+      if (!addr.match(/^0x[a-f0-9]{40}$/)) { status.textContent = '⚠️ Invalid address (must be 0x + 40 hex chars)'; return; }
+      if (WATCHED_WHALES.includes(addr)) { status.textContent = '⚠️ Already tracked'; return; }
+
+      const custom = _loadCustomWhales();
+      custom.push({ address: addr, label, addedAt: new Date().toISOString() });
+      localStorage.setItem('kuro_custom_whales', JSON.stringify(custom));
+
+      // Add to live WATCHED_WHALES
+      WATCHED_WHALES.push(addr);
+      whaleNameMap[addr] = label || `Custom ${custom.length}`;
+
+      document.getElementById('new-whale-addr').value = '';
+      document.getElementById('new-whale-label').value = '';
+      status.textContent = `✅ Added ${addr.slice(0, 10)}... — refresh to see their positions`;
+      renderCustomWhales();
+    }
+    window.addCustomWhale = addCustomWhale;
+
+    function removeCustomWhale(idx) {
+      const custom = _loadCustomWhales();
+      const removed = custom.splice(idx, 1)[0];
+      localStorage.setItem('kuro_custom_whales', JSON.stringify(custom));
+      // Remove from live array
+      const wi = WATCHED_WHALES.indexOf(removed.address);
+      if (wi >= 0) WATCHED_WHALES.splice(wi, 1);
+      renderCustomWhales();
+      document.getElementById('whale-add-status').textContent = `Removed ${removed.address.slice(0, 10)}...`;
+    }
+    window.removeCustomWhale = removeCustomWhale;
+
+    // Render on analytics load
+    renderCustomWhales();
 
     // Hook into loadAnalytics to also render sliders
     const _origLoadAnalytics = loadAnalytics;
