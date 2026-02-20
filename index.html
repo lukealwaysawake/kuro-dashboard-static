@@ -1488,28 +1488,32 @@
           const batch = WATCHED_WHALES.slice(i, i + 3);
           const results = await Promise.all(
             batch.map(addr =>
-              alliumFills({ type: 'userFills', user: addr }).then(fills =>
-                (Array.isArray(fills) ? fills : [])
-                  .filter(f => new Date(f.time).getTime() > dayAgo)
-                  .slice(-5)
-                  .map(f => ({ ...f, _whale: addr }))
-              ).catch(() => [])
+              alliumFills({ type: 'userFills', user: addr }).then(fills => {
+                if (!Array.isArray(fills)) return [];
+                // Allium returns newest first (up to 2000) — take first 10 within 24h
+                return fills
+                  .slice(0, 50)
+                  .filter(f => (typeof f.time === 'number' ? f.time : new Date(f.time).getTime()) > dayAgo)
+                  .slice(0, 10)
+                  .map(f => ({ ...f, _whale: addr }));
+              }).catch(() => [])
             )
           );
           for (const r of results) raw.push(...r);
-          if (i + 3 < WATCHED_WHALES.length) await new Promise(r => setTimeout(r, 300)); // pace
+          if (i + 3 < WATCHED_WHALES.length) await new Promise(r => setTimeout(r, 100)); // Allium: fast
         }
         _whaleFillsCache = {
           trades: raw
             .map(f => ({
-              time: f.time, coin: f.coin,
+              time: typeof f.time === 'number' ? f.time : new Date(f.time).getTime(),
+              coin: f.coin,
               direction: f.side === 'B' ? 'LONG' : 'SHORT',
               size: parseFloat(f.sz), price: parseFloat(f.px),
               value: Math.abs(parseFloat(f.sz) * parseFloat(f.px)),
               whale: whaleNameMap[f._whale] || f._whale?.slice(0,6),
             }))
-            .filter(t => t.value >= 100)
-            .sort((a, b) => new Date(b.time) - new Date(a.time))
+            .filter(t => t.value >= 50)
+            .sort((a, b) => b.time - a.time)
             .slice(0, 30),
           ts: Date.now(),
         };
