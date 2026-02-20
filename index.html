@@ -873,7 +873,7 @@
 
     <!-- Footer -->
     <div class="footer">
-      Auto-refresh: 30s • Built by Kuro 🤖
+      Auto-refresh: 10min • Press ↻ for instant update • Built by Kuro 🤖
     </div>
   </div>
 
@@ -1442,10 +1442,13 @@
     }
 
     function refresh() {
+      // Force-invalidate all caches on manual refresh
+      _whaleFillsCache.ts = 0;
+      _whaleCache.ts = 0;
       fetchData();
       fetchDecision();
       fetchPortfolio(currentRange);
-      setTimeout(fetchWhaleFills, 3000); // delay whale fills to avoid burst
+      setTimeout(fetchWhaleFills, 1500);
     }
 
     // ============================================================
@@ -2085,14 +2088,14 @@
     // ============================================================
     // INIT (after all API functions are defined)
     // ============================================================
+    // Initial load
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
-    setTimeout(fetchWhaleFills, 2000); // Initial whale fills (2s delay to avoid burst with fetchData)
-    setInterval(fetchData, 30000);
-    setInterval(fetchDecision, 60000);
-    setInterval(() => fetchPortfolio(currentRange), 60000);
-    setInterval(fetchWhaleFills, 120000);
+    setTimeout(fetchWhaleFills, 2000);
+
+    // Auto-refresh every 10 minutes (not aggressive — manual refresh available)
+    setInterval(() => { fetchData(); fetchDecision(); fetchPortfolio(currentRange); fetchWhaleFills(); }, 600000);
 
     // ============================================================
     // PAGE TABS
