@@ -1603,7 +1603,7 @@
           ? Math.round(((c.longCount - c.shortCount) / c.totalCount) * 100)
           : 0;
       }
-      const aggregate = Object.values(coinMap).sort((a, b) => b.netValue - a.netValue);
+      const aggregate = Object.values(coinMap).sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
 
       // Use cached whale fills (fetched separately every 2min to avoid rate limits)
       const recentTrades = _whaleFillsCache.trades;
@@ -1882,8 +1882,10 @@
           const coin = p.position.coin;
           const size = parseFloat(p.position.szi);
           if (size === 0) continue;
-          if (!byCoin[coin]) byCoin[coin] = { long: 0, short: 0 };
-          if (size > 0) byCoin[coin].long++; else byCoin[coin].short++;
+          if (!byCoin[coin]) byCoin[coin] = { long: 0, short: 0, longVal: 0, shortVal: 0 };
+          const val = Math.abs(size) * parseFloat(p.position.entryPx || 0);
+          if (size > 0) { byCoin[coin].long++; byCoin[coin].longVal += val; }
+          else { byCoin[coin].short++; byCoin[coin].shortVal += val; }
           if (coin === 'BTC') { if (size > 0) btcLong++; else btcShort++; }
           if (coin === 'ETH') { if (size > 0) ethLong++; else ethShort++; }
         }
