@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- deploy-v3: 2026-02-13T15:00 -->
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -63,7 +64,8 @@
     .stat-value.red { color: var(--red); }
     .stat-sep { width: 1px; height: 16px; background: var(--border); }
     @media (max-width: 600px) {
-      .stats-bar { gap: 8px 16px; padding: 10px 12px; font-size: 11px; }
+      .stats-bar { gap: 4px 12px; padding: 8px 10px; font-size: 10px; }
+      .stat-label { font-size: 9px; }
       .stat-sep { display: none; }
       .stat-ml-auto { margin-left: 0 !important; }
     }
@@ -100,6 +102,13 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       border-bottom: 1px solid var(--border);
+    }
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sortable:hover {
+      color: var(--green);
       position: sticky;
       top: 0;
     }
@@ -249,8 +258,6 @@
     .tl-dot.EXIT { background: var(--red); }
     .tl-dot.FLIP { background: var(--blue); }
     .tl-dot.PERIODIC { background: var(--muted); }
-    .tl-dot.SKIP { background: #f59e0b; }
-    .tl-dot.CURRENT { background: var(--blue); }
     .tl-dot.SYSTEM { background: #a78bfa; }
     .tl-body { flex: 1; min-width: 0; }
     .tl-head {
@@ -306,68 +313,6 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    /* Page Tabs */
-    .page-tabs { display: flex; gap: 4px; }
-    .page-tab {
-      background: transparent; border: 1px solid var(--border); color: var(--muted);
-      padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;
-    }
-    .page-tab.active { background: var(--green); color: #000; border-color: var(--green); }
-    .page-tab:hover:not(.active) { color: var(--text); border-color: var(--text); }
-
-    /* Analytics page */
-    .analytics-page { display: none; }
-    .analytics-page.active { display: block; }
-    .profile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 16px 0; }
-    .profile-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
-    }
-    .profile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .profile-name { font-size: 16px; font-weight: 700; }
-    .profile-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
-    .profile-stat { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-    .profile-stat:last-child { border: none; }
-    .profile-stat .label { color: var(--muted); }
-    .profile-stat .value { font-weight: 600; }
-    .consensus-chart { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; }
-    .heatmap-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 16px 0; overflow-x: auto; }
-    .heatmap-cell { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; border-radius: 4px; }
-
-    /* Algorithm Page */
-    .algo-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 16px 0; }
-    .algo-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
-    .algo-flow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: stretch; margin: 16px 0; }
-    .algo-node { background: #1a1d23; border: 2px solid var(--border); border-radius: 12px; padding: 16px; min-width: 160px; max-width: 200px; text-align: center; position: relative; }
-    .algo-node.highlight { border-color: var(--green); box-shadow: 0 0 12px rgba(34,197,94,0.2); }
-    .algo-node.gate { border-color: #f59e0b; border-style: dashed; }
-    .algo-node .node-icon { font-size: 28px; margin-bottom: 6px; }
-    .algo-node .node-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-    .algo-node .node-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
-    .algo-arrow { display: flex; align-items: center; font-size: 24px; color: var(--muted); }
-    .algo-weight-bar { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
-    .algo-weight-bar .bar-label { width: 100px; font-size: 12px; color: var(--muted); }
-    .algo-weight-bar .bar-fill { height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; font-weight: 700; color: #000; }
-    .algo-weight-bar .bar-bg { flex: 1; background: #1a1d23; border-radius: 4px; overflow: hidden; }
-    .algo-gate-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-    .algo-gate-table td, .algo-gate-table th { padding: 6px 10px; text-align: left; font-size: 12px; border-bottom: 1px solid var(--border); }
-    .algo-gate-table th { color: var(--muted); font-weight: 600; }
-    .algo-formula { background: #0d0f12; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; margin: 8px 0; overflow-x: auto; color: var(--green); }
-    @media (max-width: 768px) { .algo-flow { flex-direction: column; align-items: center; } .algo-node { max-width: 100%; } }
-
-    /* Weight Sliders */
-    .weight-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-    .weight-row:last-child { border: none; }
-    .weight-label { width: 140px; font-size: 12px; font-weight: 600; }
-    .weight-meta { width: 100px; font-size: 11px; color: var(--muted); }
-    .weight-slider { flex: 1; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; }
-    .weight-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--green); cursor: pointer; }
-    .weight-value { width: 50px; text-align: right; font-size: 13px; font-weight: 700; font-family: monospace; }
-    .weight-value.boosted { color: var(--green); }
-    .weight-value.nerfed { color: var(--red); }
-    .weight-value.neutral { color: var(--muted); }
-    .weight-toggle { background: none; border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-    .weight-toggle.disabled { opacity: 0.3; }
-
     .chart-tabs {
       display: flex;
       gap: 2px;
@@ -397,19 +342,6 @@
       align-items: baseline;
       gap: 12px;
       margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    @media (max-width: 600px) {
-      .chart-summary {
-        gap: 6px 10px;
-        font-size: 12px;
-      }
-      .chart-breakdown {
-        flex-basis: 100%;
-        margin-left: 0 !important;
-        margin-top: 4px;
-        font-size: 10px !important;
-      }
     }
     .chart-value {
       font-size: 22px;
@@ -429,10 +361,15 @@
     }
     @media (max-width: 600px) {
       .chart-section { padding: 12px; }
-      .chart-value { font-size: 18px; }
-      .chart-pnl { font-size: 11px; }
+      .chart-summary { flex-wrap: wrap; gap: 4px 10px; }
+      .chart-value { font-size: 18px; white-space: nowrap; }
+      .chart-pnl { font-size: 11px; white-space: nowrap; }
+      .chart-breakdown { margin-left: 0 !important; font-size: 10px !important; white-space: nowrap; }
       .chart-canvas-wrap { height: 140px; }
       .chart-tab { padding: 3px 8px; font-size: 10px; }
+    }
+    @media (max-width: 600px) {
+      .pos-hide-mobile { display: none; }
     }
 
     /* Footer */
@@ -450,27 +387,17 @@
     <header class="header">
       <div class="title">🤖 Kuro Trading</div>
       <div style="display:flex;align-items:center;gap:16px;">
-        <div class="page-tabs">
-          <button class="page-tab active" onclick="switchPage('trading')">📊 Trading</button>
-          <button class="page-tab" onclick="switchPage('analytics')">🐋 Whale Analytics</button>
-          <button class="page-tab" onclick="switchPage('algorithm')">🧠 Algorithm</button>
-        </div>
         <span class="status">Hyperliquid Mainnet</span>
+        <a href="/chat.html" style="color:#4ade80;text-decoration:none;font-size:12px;font-weight:500;">💬 Chat</a>
         <button class="refresh-btn" onclick="refresh()">↻ Refresh</button>
       </div>
     </header>
 
-    <!-- Trading Page -->
-    <div id="trading-page" class="trading-page active">
     <!-- Stats Bar -->
     <div class="stats-bar">
       <div class="stat">
         <span class="stat-label">Account:</span>
         <span class="stat-value green" id="account-value">$--</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">Realized:</span>
-        <span class="stat-value" id="realized-pnl">--</span>
       </div>
       <div class="stat">
         <span class="stat-label">Unrealized:</span>
@@ -491,10 +418,10 @@
       </div>
       <div class="stat">
         <span class="stat-label">Avail:</span>
-        <span class="stat-value green" id="withdrawable">--</span>
+        <span class="stat-value green" id="avail-value">--</span>
       </div>
       <div class="stat">
-        <span class="stat-label">Pos:</span>
+        <span class="stat-label">Pos Size:</span>
         <span class="stat-value" id="pos-value">--</span>
       </div>
       <div class="stat">
@@ -633,261 +560,9 @@
       </div>
     </div>
 
-    </div><!-- /trading-page -->
-
-    <!-- Analytics Page -->
-    <div id="analytics-page" class="analytics-page">
-      <div class="stats-bar" id="analytics-stats">
-        <div class="stat-item"><span class="stat-label">Total Trades</span><span class="stat-value" id="a-total-trades">--</span></div>
-        <div class="stat-item"><span class="stat-label">Round Trips</span><span class="stat-value" id="a-round-trips">--</span></div>
-        <div class="stat-item"><span class="stat-label">Avg Win Rate</span><span class="stat-value green" id="a-avg-wr">--</span></div>
-        <div class="stat-item"><span class="stat-label">Whales Tracked</span><span class="stat-value" id="a-whale-count">--</span></div>
-      </div>
-
-      <!-- Whale Wallet Manager -->
-      <div class="algo-section" style="margin-top:12px">
-        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
-          <span>📋 Whale Wallets (${_CORE_WHALES.length} core + custom)</span>
-        </div>
-        <div style="display:flex;gap:8px;margin:8px 0">
-          <input id="new-whale-addr" type="text" placeholder="0x... (Hyperliquid address)" style="flex:1;background:#1a1d23;border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:monospace;font-size:12px">
-          <input id="new-whale-label" type="text" placeholder="Label (optional)" style="width:120px;background:#1a1d23;border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:12px">
-          <button class="refresh-btn" onclick="addCustomWhale()" style="background:var(--green);color:#000;font-size:12px;white-space:nowrap">+ Add</button>
-        </div>
-        <div id="custom-whale-list"></div>
-        <div id="whale-add-status" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
-      </div>
-
-      <!-- Whale Profiles -->
-      <div class="section"><div class="section-title"><span>🐋 Whale Profiles</span></div></div>
-      <div class="profile-grid" id="profile-grid"></div>
-
-      <!-- Consensus History Chart -->
-      <div class="consensus-chart">
-        <div class="section-title"><span>📈 BTC/ETH Whale Consensus History</span></div>
-        <canvas id="consensus-chart" height="200"></canvas>
-      </div>
-
-      <!-- Trading Heatmap -->
-      <div class="heatmap-wrap">
-        <div class="section-title"><span>🔥 Trading Activity Heatmap (by hour KST)</span></div>
-        <div id="heatmap-container"></div>
-      </div>
-      <!-- Weight Adjustment -->
-      <div class="consensus-chart" style="margin-top:16px">
-        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
-          <span>⚖️ Whale Weight Adjustment</span>
-          <div style="display:flex;gap:8px">
-            <button class="refresh-btn" onclick="resetWeights()" style="font-size:11px">Reset All</button>
-            <button class="refresh-btn" onclick="applyWeights()" style="background:var(--green);color:#000;font-size:11px">💾 Apply to Bot</button>
-          </div>
-        </div>
-        <p style="color:var(--muted);font-size:11px;margin:4px 0 12px">슬라이더로 각 고래의 시그널 가중치를 조정합니다. Apply 버튼으로 봇에 반영됩니다.</p>
-        <div id="weight-sliders"></div>
-        <div id="weight-status" style="margin-top:8px;font-size:12px;color:var(--muted)"></div>
-      </div>
-    </div><!-- /analytics-page -->
-
-    <!-- Algorithm Page -->
-    <div id="algorithm-page" style="display:none">
-
-      <!-- 1. Overview Flow -->
-      <div class="algo-section">
-        <div class="algo-title">🧠 Algorithm Overview</div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Kuro의 트레이딩 알고리즘은 고래 추적 + 기술적 분석을 결합한 다층 시그널 시스템입니다.</p>
-
-        <div class="algo-flow">
-          <div class="algo-node highlight">
-            <div class="node-icon">🐋</div>
-            <div class="node-title">Whale Tracking</div>
-            <div class="node-desc">14명의 고래 포지션을<br>15초마다 모니터링</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node">
-            <div class="node-icon">📊</div>
-            <div class="node-title">Technical Analysis</div>
-            <div class="node-desc">EMA, RSI, MACD, BB<br>+ MTF + Orderbook</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node">
-            <div class="node-icon">⚖️</div>
-            <div class="node-title">Signal Scoring</div>
-            <div class="node-desc">9개 컴포넌트<br>가중 합산 (-100~+100)</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node gate">
-            <div class="node-icon">🚧</div>
-            <div class="node-title">Safety Gates</div>
-            <div class="node-desc">Threshold + Confidence<br>+ R:R + RSI Filter</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node highlight">
-            <div class="node-icon">⚡</div>
-            <div class="node-title">Execution</div>
-            <div class="node-desc">Smart Entry (Limit→Market)<br>3-tier TP + Dynamic SL</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Signal Weights -->
-      <div class="algo-section">
-        <div class="algo-title">⚖️ Signal Component Weights</div>
-        <p style="color:var(--muted);font-size:12px;margin-bottom:12px">각 컴포넌트 점수 (-100~+100)에 가중치를 곱해 합산합니다. 고래 30%가 가장 큰 비중.</p>
-
-        <div id="algo-weight-bars">
-          <!-- Filled by JS -->
-        </div>
-
-        <div class="algo-formula">
-          totalScore = Σ (component_score × weight)<br>
-          = trend×0.15 + momentum×0.15 + volume×0.10 + onchain×0.05<br>
-          &nbsp;&nbsp;+ <span style="color:#22c55e;font-weight:700">whale×0.30</span> + divergence×0.10 + mtf×0.10 + orderbook×0.05
-        </div>
-      </div>
-
-      <!-- 3. Whale Signal Pipeline -->
-      <div class="algo-section">
-        <div class="algo-title">🐋 Whale Signal Pipeline</div>
-
-        <div class="algo-flow">
-          <div class="algo-node">
-            <div class="node-icon">📡</div>
-            <div class="node-title">Position Scan</div>
-            <div class="node-desc">14 whales × Allium API<br>포지션 + 최근 fills</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node">
-            <div class="node-icon">📐</div>
-            <div class="node-title">Position Score</div>
-            <div class="node-desc">Long % vs Short %<br>-100 ~ +100</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node">
-            <div class="node-icon">🔄</div>
-            <div class="node-title">Momentum</div>
-            <div class="node-desc">최근 진입/이탈 방향<br>지수 감쇠 (λ=0.18)</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node">
-            <div class="node-icon">🧬</div>
-            <div class="node-title">Hybrid Score</div>
-            <div class="node-desc">Position 60%<br>+ Momentum 40%</div>
-          </div>
-          <div class="algo-arrow">→</div>
-          <div class="algo-node gate">
-            <div class="node-icon">📏</div>
-            <div class="node-title">Entry Distance</div>
-            <div class="node-desc">현재가 vs 고래 진입가<br>2%이내 = 풀, 10%+ = 감쇄</div>
-          </div>
-        </div>
-
-        <div style="margin-top:16px">
-          <div class="algo-formula">
-            whaleScore = hybrid × entryDistanceFactor<br>
-            hybrid = position × 0.60 + momentum × 0.40<br>
-            <br>
-            <span style="color:var(--muted)">// Burst Detection (3+ 고래 동시 진입 30분 내)</span><br>
-            if burst → momentum 가중치 0.40 → 최대 0.75로 시프트<br>
-            <span style="color:var(--muted)">// Skill Weight (프로필 기반)</span><br>
-            각 고래 기여도 = skill_weight × freshness × assetModifier
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. Entry Gates -->
-      <div class="algo-section">
-        <div class="algo-title">🚧 Entry Safety Gates</div>
-        <p style="color:var(--muted);font-size:12px;margin-bottom:12px">시그널이 발생해도 아래 게이트를 모두 통과해야 진입합니다.</p>
-
-        <table class="algo-gate-table">
-          <tr><th>Gate</th><th>조건</th><th>설명</th></tr>
-          <tr>
-            <td>① Score Threshold</td>
-            <td><code>|score| > 35</code></td>
-            <td>기본 35점. 레인징 +10, 볼라틸 +15 가산. MTF 불일치 시 +15</td>
-          </tr>
-          <tr>
-            <td>② Confidence Floor</td>
-            <td><code>confidence > 25%</code></td>
-            <td>모든 컴포넌트가 같은 방향이면 ×1.2 부스트</td>
-          </tr>
-          <tr>
-            <td>③ Risk:Reward</td>
-            <td><code>R:R ≥ 1.5</code></td>
-            <td>ATR 기반 SL/TP 거리 비율. 1.5 미만이면 스킵</td>
-          </tr>
-          <tr>
-            <td>④ RSI Filter</td>
-            <td><code>LONG: RSI < 75</code><br><code>SHORT: RSI > 25</code></td>
-            <td>극단 RSI에서 진입 차단 (soft: threshold +5, hard: 블록)</td>
-          </tr>
-          <tr>
-            <td>⑤ Direction Change</td>
-            <td><code>trigger only</code></td>
-            <td>방향 전환 시에만 진입 시도. 같은 방향 유지 중엔 대기</td>
-          </tr>
-          <tr>
-            <td>⑥ Position Limits</td>
-            <td><code>≤ 8 concurrent</code></td>
-            <td>최대 8개 동시 포지션. 같은 방향 최대 6개</td>
-          </tr>
-        </table>
-      </div>
-
-      <!-- 5. Execution -->
-      <div class="algo-section">
-        <div class="algo-title">⚡ Execution & Risk Management</div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
-          <div style="background:#1a1d23;border-radius:8px;padding:14px">
-            <div style="font-weight:700;font-size:14px;margin-bottom:8px">🎯 Smart Entry</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.6">
-              1. 고래 진입가 근처에 <strong style="color:var(--text)">Limit Order</strong> 배치<br>
-              2. 30초 타임아웃 → 미체결 시 <strong style="color:var(--text)">Market Order</strong> 전환<br>
-              3. 슬리피지: Limit 0% / Market 0.1%<br>
-            </div>
-          </div>
-          <div style="background:#1a1d23;border-radius:8px;padding:14px">
-            <div style="font-weight:700;font-size:14px;margin-bottom:8px">🛡️ Stop Loss</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.6">
-              • 기본: ATR × 2.0 거리 (min 2%, max 6%)<br>
-              • <strong style="color:var(--text)">Dynamic</strong>: 변동성 확대 → SL 확장<br>
-              • <strong style="color:var(--text)">Momentum</strong>: 역방향 모멘텀 → SL 축소<br>
-              • <strong style="color:#ef4444">고래 이탈</strong>: 2+ 고래 클로즈 → 50% 즉시 청산<br>
-            </div>
-          </div>
-          <div style="background:#1a1d23;border-radius:8px;padding:14px">
-            <div style="font-weight:700;font-size:14px;margin-bottom:8px">💰 Take Profit (3-tier)</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.6">
-              • TP1: ATR × 3.0 → <strong style="color:var(--green)">33% 청산</strong><br>
-              • TP2: ATR × 4.5 → <strong style="color:var(--green)">33% 청산</strong><br>
-              • TP3: Bollinger Band → <strong style="color:var(--green)">34% 청산</strong><br>
-              • 변동성 수축 시 TP 자동 축소<br>
-            </div>
-          </div>
-          <div style="background:#1a1d23;border-radius:8px;padding:14px">
-            <div style="font-weight:700;font-size:14px;margin-bottom:8px">📏 Position Sizing</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.6">
-              • 기본: 잔액의 <strong style="color:var(--text)">2%</strong> 리스크/트레이드<br>
-              • Kelly Criterion: 충분한 거래 후 자동 조정<br>
-              • 레버리지: BTC/ETH/SOL <strong style="color:var(--text)">5x</strong>, 나머지 <strong style="color:var(--text)">2x</strong><br>
-              • Max drawdown: 15% → 거래 중단<br>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 6. Current Config -->
-      <div class="algo-section">
-        <div class="algo-title">⚙️ Live Configuration</div>
-        <div id="algo-live-config" style="font-size:12px;color:var(--muted)">Loading...</div>
-      </div>
-
-    </div><!-- /algorithm-page -->
-
     <!-- Footer -->
     <div class="footer">
-      Auto-refresh: 10min • Press ↻ for instant update • Built by Kuro 🤖
+      Auto-refresh: 45s • Built by Kuro 🤖
     </div>
   </div>
 
@@ -907,10 +582,12 @@
 
     async function fetchPortfolio(range) {
       try {
-        const data = await apiPortfolio(range || currentRange);
+        const res = await fetch('/api/portfolio.js?range=' + (range || currentRange));
+        if (!res.ok) return; // Graceful fail when no server
+        const data = await res.json();
         renderChart(data);
         renderChartSummary(data);
-      } catch (e) { console.error('Portfolio fetch error:', e); }
+      } catch (e) { /* no server available, skip */ }
     }
 
     function renderChart(data) {
@@ -1030,8 +707,6 @@
       const uCls = uPnl >= 0 ? 'green' : 'red';
       unrealizedEl.className = uCls;
       unrealizedEl.textContent = `${uSign}$${Math.abs(uPnl).toFixed(2)}`;
-
-      // Stats bar is updated by fetchData() with API data, not chart data
     }
 
     // State
@@ -1061,12 +736,19 @@
     // Formatters
     const fmt = {
       money: (v) => {
-        if (v == null || isNaN(v)) return '$0.00';
         if (Math.abs(v) >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
         if (Math.abs(v) >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
         return '$' + v.toFixed(2);
       },
-      price: (v) => '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}),
+      price: (v) => {
+        if (v >= 1) return '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2});
+        if (v === 0) return '$0';
+        // For tiny prices like 0.001966, show significant digits
+        const abs = Math.abs(v);
+        if (abs < 0.0001) return '$' + v.toFixed(6);
+        if (abs < 0.01) return '$' + v.toFixed(4);
+        return '$' + v.toFixed(3);
+      },
       pnl: (v) => {
         const sign = v >= 0 ? '+' : '';
         const cls = v >= 0 ? 'green' : 'red';
@@ -1191,29 +873,57 @@
       const pct = margin.usedPct || 0;
       const pctClass = pct > 80 ? 'red' : pct > 50 ? '' : 'green';
       document.getElementById('margin-info').innerHTML = `<span class="${pctClass}">${fmt.money(margin.totalMarginUsed)} (${pct.toFixed(1)}%)</span>`;
-      document.getElementById('withdrawable').textContent = fmt.money(margin.withdrawable || 0);
+      const avail = margin.available || 0;
+      const availEl = document.getElementById('avail-value');
+      availEl.textContent = fmt.money(avail);
+      availEl.className = 'stat-value ' + (avail > 0 ? 'green' : 'red');
       document.getElementById('pos-value').textContent = fmt.money(margin.positionValue);
       document.getElementById('acct-leverage').textContent = margin.leverage.toFixed(2) + 'x';
     }
 
+    // Position sort state
+    let positionSort = 'margin'; // 'margin' | 'pnl'
+    let cachedPositions = [];
+    let cachedFetchError = false;
+
+    function sortPositions(arr) {
+      const sorted = [...arr];
+      if (positionSort === 'pnl') sorted.sort((a, b) => (b.pnl || 0) - (a.pnl || 0));
+      else sorted.sort((a, b) => (b.marginUsed || 0) - (a.marginUsed || 0));
+      return sorted;
+    }
+
+    function setPositionSort(key) {
+      positionSort = key;
+      renderPositions(cachedPositions, cachedFetchError);
+    }
+
     // Render My Positions (compact table with margin)
-    function renderPositions(positions) {
+    function renderPositions(positions, fetchError) {
+      cachedPositions = positions || [];
+      cachedFetchError = fetchError;
       const container = document.getElementById('my-positions');
-      if (!positions.length) {
+      if (fetchError) {
+        container.innerHTML = '<div class="my-position empty" style="color:#f59e0b">⚠ Failed to load positions — retrying...</div>';
+        return;
+      }
+      if (!positions || !positions.length) {
         container.innerHTML = '<div class="my-position empty">No positions</div>';
         return;
       }
+      const sorted = sortPositions(positions);
+      const pnlH = positionSort === 'pnl' ? 'PnL ▼' : 'PnL';
+      const marginH = positionSort === 'margin' ? 'Margin ▼' : 'Margin';
       container.innerHTML = `<div class="table-wrap"><table>
-        <thead><tr><th>Coin</th><th>Side</th><th class="right">Size</th><th class="right">Entry</th><th class="right">Price</th><th class="right">PnL</th><th class="right">Lev</th><th class="right">Margin</th></tr></thead>
-        <tbody>${positions.map(p => `<tr>
-          <td><strong>${p.coin}</strong></td>
-          <td>${fmt.badge(p.direction)}</td>
-          <td class="right">${p.size.toFixed(4)}</td>
-          <td class="right">${fmt.price(p.entryPrice)}</td>
-          <td class="right">${fmt.price(p.currentPrice)}</td>
-          <td class="right">${fmt.pnl(p.pnl)}</td>
-          <td class="right">${p.leverage}x</td>
-          <td class="right">${fmt.money(p.marginUsed || 0)}</td>
+        <thead><tr><th>Coin</th><th>Side</th><th class="right">Entry</th><th class="right">Price</th><th class="right sortable" onclick="setPositionSort('pnl')">${pnlH}</th><th class="right pos-hide-mobile">Lev</th><th class="right pos-hide-mobile sortable" onclick="setPositionSort('margin')">${marginH}</th></tr></thead>
+        <tbody>${sorted.map(p => `<tr>
+          <td><strong>${p.coin || '?'}</strong></td>
+          <td>${fmt.badge(p.direction || 'NEUTRAL')}</td>
+          <td class="right">${fmt.price(p.entryPrice || 0)}</td>
+          <td class="right">${fmt.price(p.currentPrice || p.entryPrice || 0)}</td>
+          <td class="right">${fmt.pnl(p.pnl || 0)}</td>
+          <td class="right pos-hide-mobile">${(p.leverage || 1)}x</td>
+          <td class="right pos-hide-mobile">${fmt.money(p.marginUsed || 0)}</td>
         </tr>`).join('')}</tbody></table></div>`;
     }
 
@@ -1269,7 +979,7 @@
       const historyEl = document.getElementById('decision-history');
       const history = data.history || [];
       if (!history.length) {
-        historyEl.innerHTML = '';
+        historyEl.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;font-size:12px;">최근 48시간 내 이벤트 없음</div>';
         return;
       }
 
@@ -1319,7 +1029,7 @@
           const w = sig.whale;
           const wDir = w.direction || '?';
           const wCount = w.whaleCount || 0;
-          const wTotal = w.totalWhales || WATCHED_WHALES.length;
+          const wTotal = w.totalWhales || 14;
           rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">고래 합의</span><span>${wDir} (${wCount}/${wTotal}명)</span></div>`);
         }
 
@@ -1333,11 +1043,13 @@
         }
 
         // Fill info (compact)
-        rows.push('<div class="tl-detail-sep"></div>');
-        rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">체결</span><span>${d.size.toPrecision(4)} @ $${(d.avgPrice || 0).toLocaleString('en-US', {maximumFractionDigits:2})} (${sig.leverage || '?'}x)</span></div>`);
+        if (d.size != null) {
+          rows.push('<div class="tl-detail-sep"></div>');
+          rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">체결</span><span>${(d.size || 0).toPrecision(4)} @ $${(d.avgPrice || 0).toLocaleString('en-US', {maximumFractionDigits:2})} (${sig.leverage || '?'}x)</span></div>`);
+        }
       } else if (d.size != null) {
         // No signal data — fallback to fill info only
-        rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">체결</span><span>${d.size.toPrecision(4)} @ $${(d.avgPrice || 0).toLocaleString('en-US', {maximumFractionDigits:2})}</span></div>`);
+        rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">체결</span><span>${(d.size || 0).toPrecision(4)} @ $${(d.avgPrice || 0).toLocaleString('en-US', {maximumFractionDigits:2})}</span></div>`);
         if (d.fee) rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">수수료</span><span>$${d.fee.toFixed(4)}</span></div>`);
         if (d.fillCount > 1) rows.push(`<div class="tl-detail-row"><span class="tl-detail-label">체결 수</span><span>${d.fillCount}건</span></div>`);
         if (d.whales && (d.whales.long || d.whales.short)) {
@@ -1381,27 +1093,33 @@
       const display = historyExpanded ? fullHistoryData : fullHistoryData.slice(0, 4);
       const hasMore = fullHistoryData.length > 4;
 
-      historyEl.innerHTML = `
-        ${display.map(h => {
-          const pnlHtml = h.pnl && h.pnl !== 0
-            ? `<span class="tl-pnl ${h.pnl >= 0 ? 'green' : 'red'}">${h.pnl >= 0 ? '+' : ''}$${h.pnl.toFixed(2)}</span>`
-            : '';
-          const detailHtml = h.detail ? buildDetailHtml(h) : '';
-          const toggleHtml = h.detail ? `<button class="tl-toggle" onclick="toggleDetail(this)">▶ 상세</button>` : '';
-          return `<div class="tl-entry">
-            <div class="tl-dot ${h.type}"></div>
-            <div class="tl-body">
-              <div class="tl-head">
-                <span class="tl-action">${typeEmoji(h.type)} ${escapeHtml(h.action)}${pnlHtml}</span>
-                <span class="tl-time">${toggleHtml} ${relativeTime(h.timestamp)}</span>
+      try {
+        historyEl.innerHTML = `
+          ${display.map(h => {
+            const pnlHtml = h.pnl && h.pnl !== 0
+              ? `<span class="tl-pnl ${h.pnl >= 0 ? 'green' : 'red'}">${h.pnl >= 0 ? '+' : ''}$${h.pnl.toFixed(2)}</span>`
+              : '';
+            let detailHtml = '';
+            try { detailHtml = h.detail ? buildDetailHtml(h) : ''; } catch(e) { console.error('Detail render error:', e); }
+            const toggleHtml = h.detail ? `<button class="tl-toggle" onclick="toggleDetail(this)">▶ 상세</button>` : '';
+            return `<div class="tl-entry">
+              <div class="tl-dot ${h.type || 'SYSTEM'}"></div>
+              <div class="tl-body">
+                <div class="tl-head">
+                  <span class="tl-action">${typeEmoji(h.type)} ${escapeHtml(h.action || '')}${pnlHtml}</span>
+                  <span class="tl-time">${toggleHtml} ${relativeTime(h.timestamp)}</span>
+                </div>
+                <div class="tl-reason">${escapeHtml(h.reason || '')}</div>
+                ${detailHtml}
               </div>
-              <div class="tl-reason">${escapeHtml(h.reason)}</div>
-              ${detailHtml}
-            </div>
-          </div>`;
-        }).join('')}
-        ${hasMore ? `<button class="refresh-btn" style="width:100%;margin-top:8px;" onclick="toggleHistory()">${historyExpanded ? '접기' : '더보기 (' + fullHistoryData.length + ')'}</button>` : ''}
-      `;
+            </div>`;
+          }).join('')}
+          ${hasMore ? `<button class="refresh-btn" style="width:100%;margin-top:8px;" onclick="toggleHistory()">${historyExpanded ? '접기' : '더보기 (' + fullHistoryData.length + ')'}</button>` : ''}
+        `;
+      } catch(e) {
+        console.error('Timeline render error:', e);
+        historyEl.innerHTML = '<div style="text-align:center;color:var(--muted);padding:24px;font-size:12px;">히스토리 렌더링 오류</div>';
+      }
     }
 
     function toggleHistory() {
@@ -1410,1124 +1128,204 @@
     }
 
     // Fetch Data
+    // ===== Direct HL API (no server needed) =====
+    const HL_API = 'https://api.hyperliquid.xyz/info';
+    const WALLET = '0xff48c5bEe24DD4905ef23DDdFe10F02FEf51F1dc';
+    const WATCHED_WHALES = [
+      '0x3fc56e944aa7b1594c85861b2d46a07f82a2c0c1','0x3ff54fd26855db3758d0b5ae7aed47440c47f705',
+      '0x7a6d5fc57f6906f337c48fe2763c3a501304f79c','0xbfc79c444c41a74516bf31237ebf586a231480b4',
+      '0xac7476e14f768e3e67c195e79c2490dd20c70127','0x091144e651b334341eabdbbbfed644ad0100023e',
+      '0x5559da6ec434c5723d0ce9c4da7f29e3f8a3d43b','0xaf0fdd39e5d92499b0ed9f68693da99c0ec1e92e',
+      '0xa312114b5795dff9b8db50474dd57701aa78ad1e','0x5647249079e257329ecb6f46ed41821d3c69e7de',
+      '0x63d417a577b50c96f4f09148d4e4d70950db0522','0x67fcc46ed2a63971697dad2fc7bb0091fe89e51d',
+      '0xe02e420ec55b4e03924d77c7b342c012541ba2d3','0x8bcf7a888c66f635ac4a2caf42a8dd12a3b20b14',
+    ];
+
+    async function hlPost(body) {
+      const r = await fetch(HL_API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      return r.json();
+    }
+
+    function calcMomentum(trades, coin, hours=24) {
+      const ct = trades.filter(t => t.coin === coin);
+      const cutoff = Date.now() - hours*3600000;
+      let bull=0, bear=0;
+      for (const t of ct) {
+        if (t.time < cutoff) continue;
+        const w = Math.exp(-0.18 * (Date.now()-t.time)/3600000);
+        if (t.direction==='Open Long'||t.direction==='Close Short') bull += t.value*w;
+        else if (t.direction==='Open Short'||t.direction==='Close Long') bear += t.value*w;
+      }
+      const total = bull+bear;
+      return { score: total ? Math.round((bull-bear)/total*100) : 0, trades: ct.length };
+    }
+
     async function fetchData() {
       try {
-        const data = await apiData();
-        
-        // Stats
+        // Parallel fetch: my account + spot + prices + whale accounts+fills
+        const [account, spotAccount, prices, ...whaleData] = await Promise.all([
+          hlPost({type:'clearinghouseState', user:WALLET}).catch(()=>({})),
+          hlPost({type:'spotClearinghouseState', user:WALLET}).catch(()=>({})),
+          hlPost({type:'allMids'}).catch(()=>({})),
+          ...WATCHED_WHALES.map(async addr => {
+            try {
+              const [acct, fills] = await Promise.all([
+                hlPost({type:'clearinghouseState', user:addr}),
+                hlPost({type:'userFills', user:addr})
+              ]);
+              return { account:acct, fills, address:addr };
+            } catch { return { account:{}, fills:[], address:addr }; }
+          }),
+        ]);
+
+        // === My positions ===
+        const ms = account.marginSummary || {};
+        const perpAccountValue = parseFloat(ms.accountValue || 0);
+        const totalMarginUsed = parseFloat(ms.totalMarginUsed || 0);
+        const totalNtlPos = parseFloat(ms.totalNtlPos || 0);
+
+        const spotBal = spotAccount?.balances || [];
+        const usdcSpot = spotBal.find(b => b.coin === 'USDC');
+        const spotTotal = usdcSpot ? parseFloat(usdcSpot.total || 0) : 0;
+        const spotHold = usdcSpot ? parseFloat(usdcSpot.hold || 0) : 0;
+
+        const totalBalance = spotTotal > 0 ? spotTotal : perpAccountValue;
+        const available = spotTotal > 0 ? (spotTotal - spotHold) : (perpAccountValue - totalMarginUsed);
+        const usedPct = totalBalance > 0 ? +(totalMarginUsed / totalBalance * 100).toFixed(1) : 0;
+
+        const accountFetchFailed = !account.assetPositions && !account.marginSummary;
+        const myPositions = (account.assetPositions || [])
+          .filter(p => parseFloat(p.position.szi) !== 0)
+          .map(p => {
+            const size = Math.abs(parseFloat(p.position.szi));
+            const lev = parseFloat(p.position.leverage?.value || 1);
+            const cp = parseFloat(prices?.[p.position.coin] || p.position.entryPx);
+            const notional = size * cp;
+            return {
+              coin: p.position.coin,
+              direction: parseFloat(p.position.szi) > 0 ? 'LONG' : 'SHORT',
+              size, entryPrice: parseFloat(p.position.entryPx), currentPrice: cp,
+              pnl: parseFloat(p.position.unrealizedPnl || 0),
+              leverage: lev, marginUsed: +(notional/lev).toFixed(2), notional: +notional.toFixed(2),
+            };
+          });
+
+        // === Whale processing ===
+        const whales = whaleData.map(wd => {
+          const d = wd.account || {};
+          const positions = (d.assetPositions||[]).filter(p=>p?.position&&parseFloat(p.position.szi)!==0)
+            .map(p=>({ coin:p.position.coin, direction:parseFloat(p.position.szi)>0?'LONG':'SHORT',
+              size:Math.abs(parseFloat(p.position.szi)), entryPrice:parseFloat(p.position.entryPx||0),
+              pnl:parseFloat(p.position.unrealizedPnl||0) }));
+          return { address:wd.address.slice(0,10)+'...', fullAddress:wd.address,
+            accountValue:parseFloat(d.marginSummary?.accountValue||0), positions, fills:Array.isArray(wd.fills)?wd.fills:[] };
+        });
+
+        // Recent trades
+        const oneDayAgo = Date.now()-86400000;
+        const recentTrades = [];
+        for (const w of whales) {
+          for (const f of (w.fills||[]).slice(0,20)) {
+            if (f.time < oneDayAgo) continue;
+            recentTrades.push({ time:f.time, whale:w.address, coin:f.coin, side:f.side,
+              direction:f.dir, size:parseFloat(f.sz), price:parseFloat(f.px), value:parseFloat(f.sz)*parseFloat(f.px) });
+          }
+        }
+        recentTrades.sort((a,b)=>b.time-a.time);
+
+        // Aggregate
+        const aggMap = new Map();
+        for (const w of whales) for (const pos of w.positions) {
+          if (!aggMap.has(pos.coin)) aggMap.set(pos.coin, {coin:pos.coin,longValue:0,shortValue:0,longSize:0,shortSize:0,longCount:0,shortCount:0,longPnL:0,shortPnL:0,longEntrySum:0,shortEntrySum:0,details:[]});
+          const a = aggMap.get(pos.coin);
+          const dv = pos.size*pos.entryPrice;
+          if (pos.direction==='LONG') { a.longValue+=dv; a.longSize+=pos.size; a.longCount++; a.longPnL+=pos.pnl; a.longEntrySum+=pos.entryPrice*pos.size; }
+          else { a.shortValue+=dv; a.shortSize+=pos.size; a.shortCount++; a.shortPnL+=pos.pnl; a.shortEntrySum+=pos.entryPrice*pos.size; }
+          a.details.push({whale:w.address,direction:pos.direction,size:pos.size,value:dv,entryPrice:pos.entryPrice,pnl:pos.pnl});
+        }
+
+        const aggregate = [];
+        for (const [coin,a] of aggMap) {
+          const nv=a.longValue-a.shortValue, tv=a.longValue+a.shortValue, tc=a.longCount+a.shortCount;
+          const nd = nv>0?'LONG':(nv<0?'SHORT':'NEUTRAL');
+          const lr = tv>0?(a.longValue/tv)*100:0;
+          const ale = a.longSize>0?a.longEntrySum/a.longSize:0;
+          const ase = a.shortSize>0?a.shortEntrySum/a.shortSize:0;
+          const mom = calcMomentum(recentTrades,coin);
+          const pb = a.longCount>a.shortCount, mb = mom.score>0;
+          aggregate.push({ coin,netDirection:nd,netValue:Math.abs(nv),totalValue:tv,
+            longValue:a.longValue,shortValue:a.shortValue,longCount:a.longCount,shortCount:a.shortCount,
+            totalCount:tc,longRatio:lr,avgLongEntry:ale,avgShortEntry:ase,
+            avgEntry:nd==='LONG'?ale:ase, totalPnL:a.longPnL+a.shortPnL,longPnL:a.longPnL,shortPnL:a.shortPnL,
+            momentum:mom.score,momentumTrades:mom.trades,agreement:(pb&&mb)||(!pb&&!mb)?'ALIGNED':'DIVERGING',
+            details:a.details.sort((x,y)=>y.value-x.value) });
+        }
+        aggregate.sort((a,b)=>b.netValue-a.netValue);
+
+        const copySignals = aggregate.filter(a=>a.totalCount>=5).map(a=>{
+          const dir=a.longCount>a.shortCount?'LONG':(a.shortCount>a.longCount?'SHORT':'NEUTRAL');
+          const wc=dir==='LONG'?a.longCount:a.shortCount;
+          return {coin:a.coin,direction:dir,whaleCount:wc,totalWhales:a.totalCount,
+            avgEntry:dir==='LONG'?a.avgLongEntry:a.avgShortEntry,
+            totalValue:dir==='LONG'?a.longValue:a.shortValue,longRatio:a.longRatio};
+        }).filter(s=>s.direction!=='NEUTRAL'&&s.whaleCount>=5);
+
+        // Build data object (same shape as old API)
+        const data = {
+          account: {
+            value: totalBalance, positions: myPositions, fetchError: accountFetchFailed,
+            margin: { totalMarginUsed, available:+available.toFixed(2), positionValue:Math.abs(totalNtlPos),
+              leverage:totalBalance>0?+(Math.abs(totalNtlPos)/totalBalance).toFixed(2):0, usedPct },
+          },
+          whales, aggregate, recentTrades: recentTrades.slice(0,30), copySignals,
+          prices: { BTC:parseFloat(prices?.BTC||0), ETH:parseFloat(prices?.ETH||0) },
+          updatedAt: new Date().toISOString(),
+        };
+
+        // === Render ===
         document.getElementById('account-value').textContent = fmt.money(data.account?.value || 0);
-        document.getElementById('btc-price').textContent = fmt.price(data.prices?.BTC || 0);
-        document.getElementById('eth-price').textContent = fmt.price(data.prices?.ETH || 0);
+        document.getElementById('btc-price').textContent = data.prices?.BTC ? fmt.price(data.prices.BTC) : '--';
+        document.getElementById('eth-price').textContent = data.prices?.ETH ? fmt.price(data.prices.ETH) : '--';
         document.getElementById('update-time').textContent = fmt.time(data.updatedAt || Date.now());
 
-        // PnL
-        const realizedPnl = data.account?.realizedPnl || 0;
-        const unrealizedPnl = data.account?.unrealizedPnl || 0;
-        
-        // Update Realized PnL
-        const realizedEl = document.getElementById('realized-pnl');
-        const rSign = realizedPnl >= 0 ? '+' : '';
-        realizedEl.textContent = rSign + fmt.money(realizedPnl);
-        realizedEl.className = 'stat-value ' + (realizedPnl >= 0 ? 'green' : 'red');
-        
-        // Update Unrealized PnL
+        const positions = data.account?.positions || [];
+        const totalPnl = positions.reduce((s, p) => s + (p.pnl || 0), 0);
         const pnlEl = document.getElementById('total-pnl');
-        const pnlSign = unrealizedPnl >= 0 ? '+' : '';
-        pnlEl.textContent = pnlSign + fmt.money(unrealizedPnl);
-        pnlEl.className = 'stat-value ' + (unrealizedPnl >= 0 ? 'green' : 'red');
-
-        // Tables
-        renderWhaleTable(data.aggregate || []);
-        renderTrades(data.recentTrades || []);
-        renderSignals(data.copySignals || []);
-        renderPositions(data.account?.positions || []);
+        const pnlSign = totalPnl >= 0 ? '+' : '';
+        pnlEl.textContent = pnlSign + fmt.money(totalPnl);
+        pnlEl.className = 'stat-value ' + (totalPnl >= 0 ? 'green' : 'red');
         updateMarginStats(data.account?.margin || null);
-      } catch(e) {
-        console.error('Data fetch error:', e);
-        document.getElementById('update-time').textContent = '⚠️ API error - retrying...';
-      }
+
+        try { renderPositions(positions, data.account?.fetchError); } catch(e) { console.error('Position render error:', e); }
+        try { renderWhaleTable(data.aggregate || []); } catch(e) { console.error('Whale table render error:', e); }
+        try { renderTrades(data.recentTrades || []); } catch(e) { console.error('Trades render error:', e); }
+        try { renderSignals(data.copySignals || []); } catch(e) { console.error('Signals render error:', e); }
+      } catch(e) { console.error('Data fetch error:', e); }
     }
 
     async function fetchDecision() {
       try {
-        const data = await apiDecisions();
+        const res = await fetch('/api/decisions.js');
+        if (!res.ok) return; // Graceful fail when no server
+        const data = await res.json();
+        if (data.error || !data.current) return;
         renderDecision(data);
-      } catch(e) { console.error('Decision fetch error:', e); }
+      } catch(e) { /* no server available, skip */ }
     }
 
     function refresh() {
-      // Force-invalidate all caches on manual refresh
-      _whaleFillsCache.ts = 0;
-      _whaleCache.ts = 0;
       fetchData();
       fetchDecision();
       fetchPortfolio(currentRange);
-      setTimeout(fetchWhaleFills, 1500);
     }
 
-    // ============================================================
-    // INLINE API CONSTANTS (must be defined before init calls)
-    // ============================================================
-    const HL_API = 'https://api.hyperliquid.xyz';
-    const ALLIUM_API = 'https://api.allium.so/api/v1/developer/trading/hyperliquid';
-    const ALLIUM_KEY = 'TBivNLFBD5OjafDRbd7QxhBcGEb2xt';
-    const WALLET = '0xff48c5bEe24DD4905ef23DDdFe10F02FEf51F1dc';
-    // Bot config (auto-synced from kuro-trading, fallback to defaults)
-    window._botConfig = { entryThreshold: 35, weights: { trend: 0.15, momentum: 0.15, volume: 0.10, onchain: 0.05, whale: 0.30, divergence: 0.10, mtf: 0.10, orderbook: 0.05 }, leverageTiers: { BTC: 5, ETH: 5, SOL: 5, default: 2 }, maxPairs: 8 };
-    const config_entryThreshold = () => window._botConfig?.entryThreshold || 35;
-    const _CORE_WHALES = [
-      '0x3fc56e944aa7b1594c85861b2d46a07f82a2c0c1',
-      '0x3ff54fd26855db3758d0b5ae7aed47440c47f705',
-      '0x7a6d5fc57f6906f337c48fe2763c3a501304f79c',
-      '0xbfc79c444c41a74516bf31237ebf586a231480b4',
-      '0xac7476e14f768e3e67c195e79c2490dd20c70127',
-      '0x091144e651b334341eabdbbbfed644ad0100023e',
-      '0x5559da6ec434c5723d0ce9c4da7f29e3f8a3d43b',
-      '0xaf0fdd39e5d92499b0ed9f68693da99c0ec1e92e',
-      '0xa312114b5795dff9b8db50474dd57701aa78ad1e',
-      '0x5647249079e257329ecb6f46ed41821d3c69e7de',
-      '0x63d417a577b50c96f4f09148d4e4d70950db0522',
-      '0x67fcc46ed2a63971697dad2fc7bb0091fe89e51d',
-      '0xe02e420ec55b4e03924d77c7b342c012541ba2d3',
-      '0x8bcf7a888c66f635ac4a2caf42a8dd12a3b20b14',
-      '0xfc8c156428a8e48cb8d0356db16e59bec4c0ecea',
-      '0x1dd4af3383fce2ee4a40d9fb6766cbfcce2ddbce',
-      '0x3895d155b005191686476a39580d43258a518e46',
-      '0x4ef1c5ae65ab5b37629b7aa523e7e95e7da528e3',
-      '0x325edd95bb016c36027ce3b9f7595af7094a9564',
-      '0xc794b210337339ce83f5be21f0f62802c029b332',
-      '0x69906b0ed626ca01a4b7c001e5711e5714ccf207',
-      '0xf770f371cc66499a89ae56aa84f9506e083f99ea',
-      '0x74da055d4ccf9dca3f15789c603e1a88a1d2d81f',
-      '0x9e74a6a1df3c2545ec4e8e54a1502967c7ad15e1',
-      '0x71cfa5e263e866f7961091e01ebc5a2d11616c20',
-      '0x7ca165f354e3260e2f8d5a7508cc9dd2fa009235',
-      '0xc0b2a1ce425d0cd8bc321c445fa6ae0eaed2e688',
-      '0x5b236d19f680ff47e7bf2a9eb88fc5cc03d443a8',
-    ];
-    function _loadCustomWhales() {
-      try { return JSON.parse(localStorage.getItem('kuro_custom_whales') || '[]'); } catch { return []; }
-    }
-    const WATCHED_WHALES = [..._CORE_WHALES, ..._loadCustomWhales().map(w => w.address).filter(a => !_CORE_WHALES.includes(a))];
-
-    // HL direct — only for lightweight calls (allMids, own account)
-    function hlFetch(body) {
-      return fetch(`${HL_API}/info`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }).then(r => r.json());
-    }
-
-    // Allium proxy — for heavy calls (whale positions, fills) — no rate limit
-    function alliumFetch(path, body) {
-      return fetch(`${ALLIUM_API}${path}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-API-KEY': ALLIUM_KEY },
-        body: JSON.stringify(body),
-      }).then(r => r.json());
-    }
-    function alliumInfo(body) { return alliumFetch('/info', body); }
-    function alliumFills(body) { return alliumFetch('/info/fills', body); }
-
-    // ---- apiData ----
-    async function apiData() {
-      // Fetch core data (separate fills to avoid blocking if it fails)
-      const [rawPerpState, rawSpotState, rawPrices] = await Promise.all([
-        hlFetch({ type: 'clearinghouseState', user: WALLET }).catch(() => null),
-        hlFetch({ type: 'spotClearinghouseState', user: WALLET }).catch(() => ({ balances: [] })),
-        hlFetch({ type: 'allMids' }).catch(() => ({})),
-      ]);
-      const perpState = rawPerpState || { marginSummary: { accountValue: '0' }, assetPositions: [] };
-      const spotState = rawSpotState || { balances: [] };
-      const prices = rawPrices || {};
-
-      // Fetch fills separately with fallback (may fail for new wallets)
-      let myFills = [];
-      try {
-        const fillsResult = await hlFetch({ type: 'userFills', user: WALLET });
-        myFills = Array.isArray(fillsResult) ? fillsResult : [];
-      } catch(e) { myFills = []; }
-
-      const usdcBalance = spotState?.balances?.find(b => b.coin === 'USDC');
-      const totalBalance = usdcBalance ? parseFloat(usdcBalance.total) : 0;
-      const account = { ...perpState, totalBalance, spotBalances: spotState?.balances || [] };
-
-      const whaleCache = await fetchWhaleData(); // shared cache
-      const whaleAccounts = whaleCache.accounts;
-      const whalePositions = whaleAccounts.map((wa, i) => ({
-        address: WATCHED_WHALES[i],
-        positions: (wa.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => ({
-          coin: p.position.coin,
-          direction: parseFloat(p.position.szi) > 0 ? 'LONG' : 'SHORT',
-          size: Math.abs(parseFloat(p.position.szi)),
-          entryPrice: parseFloat(p.position.entryPx),
-          currentPrice: parseFloat(prices[p.position.coin] || 0),
-          value: Math.abs(parseFloat(p.position.szi)) * parseFloat(prices[p.position.coin] || 0),
-          pnl: parseFloat(p.position.unrealizedPnl || 0),
-          leverage: parseFloat(p.position.leverage?.value || 1),
-        })),
-        totalValue: (wa.assetPositions || []).reduce((sum, p) => {
-          return sum + Math.abs(parseFloat(p.position.szi)) * parseFloat(prices[p.position.coin] || 0);
-        }, 0),
-      }));
-
-      // Aggregate by coin
-      const coinMap = {};
-      for (const wp of whalePositions) {
-        for (const pos of wp.positions) {
-          if (!coinMap[pos.coin]) {
-            coinMap[pos.coin] = { coin: pos.coin, longCount: 0, shortCount: 0, totalCount: 0,
-              longValue: 0, shortValue: 0, netValue: 0, avgLongEntry: 0, avgShortEntry: 0,
-              longPnL: 0, shortPnL: 0, longRatio: 0, momentum: 0, netDirection: 'NEUTRAL', agreement: 'MIXED' };
-          }
-          const c = coinMap[pos.coin];
-          c.totalCount++;
-          if (pos.direction === 'LONG') {
-            c.longCount++; c.longValue += pos.value; c.avgLongEntry += pos.entryPrice;
-            c.longPnL += pos.pnl;
-          } else {
-            c.shortCount++; c.shortValue += pos.value; c.avgShortEntry += pos.entryPrice;
-            c.shortPnL += pos.pnl;
-          }
-        }
-      }
-      for (const c of Object.values(coinMap)) {
-        if (c.longCount > 0) c.avgLongEntry = c.avgLongEntry / c.longCount;
-        if (c.shortCount > 0) c.avgShortEntry = c.avgShortEntry / c.shortCount;
-        c.netValue = c.longValue - c.shortValue;
-        c.longRatio = c.totalCount > 0 ? Math.round((c.longCount / c.totalCount) * 100) : 0;
-        c.netDirection = c.longCount > c.shortCount ? 'LONG' : (c.shortCount > c.longCount ? 'SHORT' : 'NEUTRAL');
-        c.agreement = Math.abs(c.longCount - c.shortCount) >= 2 ? 'ALIGNED' : 'MIXED';
-        c.momentum = c.longCount > 0 || c.shortCount > 0
-          ? Math.round(((c.longCount - c.shortCount) / c.totalCount) * 100)
-          : 0;
-      }
-      const aggregate = Object.values(coinMap).sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
-
-      // Use cached whale fills (fetched separately every 2min to avoid rate limits)
-      const recentTrades = _whaleFillsCache.trades;
-
-      const copySignals = aggregate.filter(a => a.totalCount >= 5).map(a => {
-        const direction = a.longCount > a.shortCount ? 'LONG' : a.shortCount > a.longCount ? 'SHORT' : 'NEUTRAL';
-        const whaleCount = direction === 'LONG' ? a.longCount : a.shortCount;
-        return { coin: a.coin, direction, whaleCount, totalWhales: a.totalCount,
-          avgEntry: direction === 'LONG' ? a.avgLongEntry : a.avgShortEntry,
-          totalValue: direction === 'LONG' ? a.longValue : a.shortValue, longRatio: a.longRatio };
-      }).filter(s => s.direction !== 'NEUTRAL' && s.whaleCount >= 5);
-
-      const realizedPnl = (Array.isArray(myFills) ? myFills : []).filter(f => parseFloat(f.closedPnl || 0) !== 0)
-        .reduce((sum, f) => sum + parseFloat(f.closedPnl), 0);
-
-      const myPositions = (account.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => {
-        const coin = p.position.coin;
-        const currentPrice = parseFloat(prices[coin] || 0);
-        const size = Math.abs(parseFloat(p.position.szi));
-        const leverage = parseFloat(p.position.leverage?.value || 1);
-        const marginUsed = currentPrice > 0 && leverage > 0 ? (size * currentPrice) / leverage : 0;
-        return { coin, direction: parseFloat(p.position.szi) > 0 ? 'LONG' : 'SHORT', size,
-          entryPrice: parseFloat(p.position.entryPx), currentPrice,
-          pnl: parseFloat(p.position.unrealizedPnl || 0), leverage, marginUsed };
-      });
-
-      const accountValue = parseFloat(account.marginSummary?.accountValue || 0);
-      const totalMarginUsed = parseFloat(account.marginSummary?.totalMarginUsed || 0);
-      const withdrawable = parseFloat(account.withdrawable || 0);
-      const marginUsedPercent = accountValue > 0 ? (totalMarginUsed / accountValue * 100) : 0;
-      const totalPositionValue = parseFloat(account.marginSummary?.totalNtlPos || 0);
-      const effectiveLeverage = accountValue > 0 ? (totalPositionValue / accountValue) : 0;
-      const unrealizedPnl = myPositions.reduce((sum, p) => sum + p.pnl, 0);
-
-      return {
-        account: {
-          value: parseFloat(account.totalBalance || accountValue),
-          accountValue, marginUsed: totalMarginUsed,
-          marginUsedPercent: marginUsedPercent.toFixed(1), withdrawable,
-          totalBalance: parseFloat(account.totalBalance || 0),
-          realizedPnl, unrealizedPnl, positions: myPositions,
-          margin: { totalMarginUsed, usedPct: parseFloat(marginUsedPercent.toFixed(1)),
-            withdrawable, positionValue: totalPositionValue, leverage: effectiveLeverage },
-        },
-        whales: whalePositions, aggregate, recentTrades: recentTrades.slice(0, 30),
-        copySignals, prices: { BTC: parseFloat(prices.BTC || 0), ETH: parseFloat(prices.ETH || 0) },
-        updatedAt: new Date().toISOString(),
-      };
-    }
-
-    // ---- apiPortfolio ----
-    const RANGE_TO_PERIOD = { '7d': 'perpWeek', '30d': 'perpMonth', 'all': 'perpAllTime' };
-    const INTERVAL_30M = 30 * 60 * 1000;
-
-    function hlPost(type, extra = {}) {
-      return fetch(`${HL_API}/info`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, ...extra }),
-      }).then(r => r.json());
-    }
-
-    async function build1dPnl(account) {
-      const now = Date.now();
-      const start = now - 24 * 60 * 60 * 1000;
-      const fills = await hlPost('userFillsByTime', { user: WALLET, startTime: start, endTime: now });
-      const sortedFills = (Array.isArray(fills) ? fills : []).map(f => ({
-        time: f.time, coin: f.coin, sz: parseFloat(f.sz || 0), px: parseFloat(f.px || 0),
-        dir: f.dir, closedPnl: parseFloat(f.closedPnl || 0), fee: parseFloat(f.fee || 0),
-      })).sort((a, b) => a.time - b.time);
-
-      const currentPositions = {};
-      for (const ap of (account?.assetPositions || [])) {
-        const coin = ap.position.coin;
-        const szi = parseFloat(ap.position.szi);
-        if (szi !== 0) currentPositions[coin] = { size: szi, entryPx: parseFloat(ap.position.entryPx) };
-      }
-      const posAtStart = {};
-      for (const coin in currentPositions) posAtStart[coin] = { ...currentPositions[coin] };
-      for (let i = sortedFills.length - 1; i >= 0; i--) {
-        const f = sortedFills[i];
-        const coin = f.coin;
-        const fillSize = f.dir.includes('Long') || f.dir.includes('Buy')
-          ? (f.dir.startsWith('Open') || f.dir.startsWith('Buy') ? f.sz : -f.sz)
-          : (f.dir.startsWith('Open') || f.dir.startsWith('Sell') ? -f.sz : f.sz);
-        if (!posAtStart[coin]) posAtStart[coin] = { size: 0, entryPx: f.px };
-        posAtStart[coin].size -= fillSize;
-        if (Math.abs(posAtStart[coin].size) < 1e-10) delete posAtStart[coin];
-      }
-
-      const coins = new Set();
-      for (const coin in posAtStart) coins.add(coin);
-      for (const f of sortedFills) coins.add(f.coin);
-
-      const candleMap = {};
-      if (coins.size > 0) {
-        await Promise.all([...coins].map(async (coin) => {
-          try {
-            const candles = await hlPost('candleSnapshot', {
-              req: { coin, interval: '30m', startTime: start, endTime: now },
-            });
-            candleMap[coin] = (candles || []).reduce((m, c) => { m[c.t] = parseFloat(c.c); return m; }, {});
-          } catch { candleMap[coin] = {}; }
-        }));
-      }
-
-      const slotStart = Math.ceil(start / INTERVAL_30M) * INTERVAL_30M;
-      const slots = [];
-      for (let t = slotStart; t <= now; t += INTERVAL_30M) slots.push(t);
-
-      let fillIdx = 0, realizedPnl = 0;
-      const positions = {};
-      for (const coin in posAtStart) positions[coin] = { ...posAtStart[coin] };
-      const points = [];
-
-      for (const slotTime of slots) {
-        while (fillIdx < sortedFills.length && sortedFills[fillIdx].time <= slotTime) {
-          const f = sortedFills[fillIdx];
-          realizedPnl += f.closedPnl - f.fee;
-          const coin = f.coin;
-          const fillSize = f.dir.includes('Long') || f.dir.includes('Buy')
-            ? (f.dir.startsWith('Open') || f.dir.startsWith('Buy') ? f.sz : -f.sz)
-            : (f.dir.startsWith('Open') || f.dir.startsWith('Sell') ? -f.sz : f.sz);
-          if (!positions[coin]) positions[coin] = { size: 0, entryPx: f.px };
-          positions[coin].size += fillSize;
-          if (f.dir.startsWith('Open')) positions[coin].entryPx = f.px;
-          if (Math.abs(positions[coin].size) < 1e-10) delete positions[coin];
-          fillIdx++;
-        }
-        let unrealizedPnl = 0;
-        for (const coin in positions) {
-          const pos = positions[coin];
-          const candles = candleMap[coin] || {};
-          const candleSlot = Math.floor(slotTime / INTERVAL_30M) * INTERVAL_30M;
-          const price = candles[candleSlot];
-          if (price && pos.entryPx) unrealizedPnl += (price - pos.entryPx) * pos.size;
-        }
-        points.push({ time: slotTime, value: realizedPnl + unrealizedPnl });
-      }
-
-      const liveUnrealized = (account?.assetPositions || []).reduce((sum, p) => {
-        return sum + parseFloat(p?.position?.unrealizedPnl || 0);
-      }, 0);
-      points.push({ time: now, value: realizedPnl + liveUnrealized });
-      return { points, realizedPnl, unrealizedPnl: liveUnrealized };
-    }
-
-    async function apiPortfolio(range) {
-      range = (range || '7d').toLowerCase();
-      const account = await hlPost('clearinghouseState', { user: WALLET });
-      const accountValue = parseFloat(account?.marginSummary?.accountValue || 0);
-      const liveUnrealized = (account?.assetPositions || []).reduce((sum, p) => {
-        return sum + parseFloat(p?.position?.unrealizedPnl || 0);
-      }, 0);
-      let points, realizedPnl = 0, unrealizedPnl = 0;
-
-      if (range === '1d') {
-        const result = await build1dPnl(account);
-        points = result.points; realizedPnl = result.realizedPnl; unrealizedPnl = result.unrealizedPnl;
-      } else {
-        const periodKey = RANGE_TO_PERIOD[range] || 'perpWeek';
-        const portfolio = await hlPost('portfolio', { user: WALLET });
-        let periodData = null;
-        if (Array.isArray(portfolio)) {
-          for (const [name, data] of portfolio) { if (name === periodKey) { periodData = data; break; } }
-        }
-        const pnlHistory = periodData?.pnlHistory || [];
-        points = pnlHistory.map(([ts, pnl]) => ({ time: ts, value: parseFloat(pnl) }));
-        if (points.length > 0) {
-          const totalPnl = points[points.length - 1].value;
-          unrealizedPnl = liveUnrealized;
-          realizedPnl = totalPnl - unrealizedPnl;
-        }
-      }
-
-      if (!points || points.length === 0) {
-        return { points: [{ time: Date.now(), value: 0 }], currentPnl: 0, pnlAmount: 0,
-          pnlPercent: 0, realizedPnl: 0, unrealizedPnl: 0, range };
-      }
-
-      const startPnl = points[0].value;
-      const endPnl = points[points.length - 1].value;
-      const pnlAmount = endPnl - startPnl;
-      const pnlPercent = accountValue > 0 ? (pnlAmount / accountValue) * 100 : 0;
-      return { points, currentPnl: endPnl, pnlAmount, pnlPercent, realizedPnl, unrealizedPnl, range };
-    }
-
-    // ---- apiDecisions ----
-    // Fetch bot decisions + config from synced JSON (cached 60s)
-    let _botCache = { decisions: [], config: null, ts: 0 };
-    async function fetchBotDecisions() {
-      if (Date.now() - _botCache.ts < 60000) return _botCache.decisions;
-      try {
-        const res = await fetch('./data/decisions.json?t=' + Math.floor(Date.now() / 60000));
-        if (!res.ok) return _botCache.decisions;
-        const raw = await res.json();
-        // Support both formats: array (old) or {decisions, config} (new)
-        if (Array.isArray(raw)) {
-          _botCache = { decisions: raw, config: null, ts: Date.now() };
-        } else {
-          _botCache = { decisions: raw.decisions || [], config: raw.config || null, ts: Date.now() };
-          // Update config from bot if available
-          if (raw.config?.entryThreshold) window._botConfig = raw.config;
-        }
-        return _botCache.decisions;
-      } catch { return _botCache.decisions; }
-    }
-
-    // Shared whale cache — populated by apiData, reused by apiDecisions
-    let _whaleCache = { accounts: [], btcLong: 0, btcShort: 0, ethLong: 0, ethShort: 0, byCoin: {}, ts: 0 };
-
-    // Whale fills cache — fetched independently every 2min
-    let _whaleFillsCache = { trades: [], ts: 0 };
-    const whaleNameMap = {};
-    _CORE_WHALES.forEach((addr, i) => whaleNameMap[addr] = `Whale ${i + 1}`);
-    _loadCustomWhales().forEach((w, i) => whaleNameMap[w.address] = w.label || `Custom ${i + 1}`);
-
-    async function fetchWhaleFills() {
-      if (Date.now() - _whaleFillsCache.ts < 120000) return; // 2min cache (Allium — no rate limit)
-      try {
-        const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
-        // Fetch 3 whales at a time to avoid rate limits
-        const raw = [];
-        for (let i = 0; i < WATCHED_WHALES.length; i += 3) {
-          const batch = WATCHED_WHALES.slice(i, i + 3);
-          const results = await Promise.all(
-            batch.map(addr =>
-              alliumFills({ type: 'userFills', user: addr }).then(fills => {
-                if (!Array.isArray(fills)) return [];
-                // Allium returns newest first (up to 2000) — take first 10 within 24h
-                return fills
-                  .slice(0, 50)
-                  .filter(f => (typeof f.time === 'number' ? f.time : new Date(f.time).getTime()) > dayAgo)
-                  .slice(0, 10)
-                  .map(f => ({ ...f, _whale: addr }));
-              }).catch(() => [])
-            )
-          );
-          for (const r of results) raw.push(...r);
-          if (i + 3 < WATCHED_WHALES.length) await new Promise(r => setTimeout(r, 100)); // Allium: fast
-        }
-        _whaleFillsCache = {
-          trades: raw
-            .map(f => ({
-              time: typeof f.time === 'number' ? f.time : new Date(f.time).getTime(),
-              coin: f.coin,
-              direction: f.side === 'B' ? 'LONG' : 'SHORT',
-              size: parseFloat(f.sz), price: parseFloat(f.px),
-              value: Math.abs(parseFloat(f.sz) * parseFloat(f.px)),
-              whale: whaleNameMap[f._whale] || f._whale?.slice(0,6),
-            }))
-            .filter(t => t.value >= 50)
-            .sort((a, b) => b.time - a.time)
-            .slice(0, 30),
-          ts: Date.now(),
-        };
-        // Re-render trades table with fresh data
-        if (_whaleFillsCache.trades.length > 0) {
-          renderTrades(_whaleFillsCache.trades);
-        }
-      } catch(e) { console.error('Whale fills error:', e); }
-    }
-
-    async function fetchWhaleData() {
-      if (Date.now() - _whaleCache.ts < 45000 && _whaleCache.accounts.length > 0) return _whaleCache;
-      // Allium for whale positions — no rate limit!
-      const whaleAccounts = await Promise.all(
-        WATCHED_WHALES.map(addr =>
-          alliumInfo({ type: 'clearinghouseState', user: addr }).catch(() => ({ assetPositions: [] }))
-        )
-      );
-      const byCoin = {};
-      let btcLong = 0, btcShort = 0, ethLong = 0, ethShort = 0;
-      for (const wa of whaleAccounts) {
-        for (const p of (wa?.assetPositions || [])) {
-          const coin = p.position.coin;
-          const size = parseFloat(p.position.szi);
-          if (size === 0) continue;
-          if (!byCoin[coin]) byCoin[coin] = { long: 0, short: 0, longVal: 0, shortVal: 0 };
-          const val = Math.abs(size) * parseFloat(p.position.entryPx || 0);
-          if (size > 0) { byCoin[coin].long++; byCoin[coin].longVal += val; }
-          else { byCoin[coin].short++; byCoin[coin].shortVal += val; }
-          if (coin === 'BTC') { if (size > 0) btcLong++; else btcShort++; }
-          if (coin === 'ETH') { if (size > 0) ethLong++; else ethShort++; }
-        }
-      }
-      _whaleCache = { accounts: whaleAccounts, btcLong, btcShort, ethLong, ethShort, byCoin, ts: Date.now() };
-      return _whaleCache;
-    }
-
-    async function apiDecisions() {
-      // Fetch account + prices + fills + bot decisions (whales from shared cache)
-      const [rawAccount, rawPrices, rawFills, botDecisions] = await Promise.all([
-        hlFetch({ type: 'clearinghouseState', user: WALLET }).catch(() => null),
-        hlFetch({ type: 'allMids' }).catch(() => ({})),
-        hlFetch({ type: 'userFills', user: WALLET }).catch(() => []),
-        fetchBotDecisions(),
-      ]);
-      const whaleData = await fetchWhaleData(); // uses cache from apiData
-
-      const account = rawAccount || { marginSummary: { accountValue: '0' }, assetPositions: [] };
-      const prices = rawPrices || {};
-      const fills = Array.isArray(rawFills) ? rawFills : [];
-
-      const accountValue = parseFloat(account.marginSummary?.accountValue || 0);
-      const positions = (account.assetPositions || []).filter(p => parseFloat(p.position.szi) !== 0).map(p => ({
-        coin: p.position.coin, direction: parseFloat(p.position.szi) > 0 ? 'LONG' : 'SHORT',
-        size: Math.abs(parseFloat(p.position.szi)), entryPrice: parseFloat(p.position.entryPx),
-        pnl: parseFloat(p.position.unrealizedPnl || 0), leverage: parseFloat(p.position.leverage?.value || 1),
-      }));
-
-      // Whale data from shared cache (no duplicate API calls)
-      const whalesByCoin = whaleData.byCoin;
-      const { btcLong, btcShort, ethLong, ethShort } = whaleData;
-
-      const btcPrice = parseFloat(prices.BTC || 0);
-      const ethPrice = parseFloat(prices.ETH || 0);
-
-      // --- Build history from actual fills ---
-      const now = Date.now();
-      const cutoff = now - 7 * 24 * 60 * 60 * 1000; // 7 days
-      const history = [];
-
-      // Group fills into trades
-      function groupFills(rawFills) {
-        const trades = [];
-        let cur = null;
-        for (const f of rawFills) {
-          const t = f.time, coin = f.coin, dir = f.dir;
-          if (cur && cur.coin === coin && Math.abs(t - cur.time) < 10000 && cur.dir === dir) {
-            cur.totalSize += parseFloat(f.sz);
-            cur.totalValue += parseFloat(f.sz) * parseFloat(f.px);
-            cur.totalPnl += parseFloat(f.closedPnl);
-            cur.fills++;
-          } else {
-            if (cur) trades.push(cur);
-            cur = { coin, dir, time: t, px: parseFloat(f.px), totalSize: parseFloat(f.sz),
-              totalValue: parseFloat(f.sz) * parseFloat(f.px), totalPnl: parseFloat(f.closedPnl), fills: 1 };
-          }
-        }
-        if (cur) trades.push(cur);
-        return trades;
-      }
-
-      const trades = groupFills(fills.filter(f => f.time > cutoff));
-
-      // Convert trades to history events
-      let totalRealizedPnl = 0;
-      let wins = 0, closedCount = 0;
-      for (const t of trades) {
-        const avgPx = t.totalSize > 0 ? t.totalValue / t.totalSize : t.px;
-        const pxFmt = avgPx > 100 ? `$${avgPx.toLocaleString('en-US', {maximumFractionDigits:1})}` : `$${avgPx.toPrecision(4)}`;
-        const pnlStr = t.totalPnl >= 0 ? `+$${t.totalPnl.toFixed(2)}` : `-$${Math.abs(t.totalPnl).toFixed(2)}`;
-        let type, action, reason;
-
-        if (t.dir.startsWith('Open Long')) {
-          type = 'ENTRY'; action = `LONG ${t.coin} 진입`;
-          reason = `${t.coin} LONG — ${t.totalSize.toPrecision(4)} @ ${pxFmt}`;
-        } else if (t.dir.startsWith('Open Short')) {
-          type = 'ENTRY'; action = `SHORT ${t.coin} 진입`;
-          reason = `${t.coin} SHORT — ${t.totalSize.toPrecision(4)} @ ${pxFmt}`;
-        } else if (t.dir.startsWith('Close Long')) {
-          type = 'EXIT'; action = `LONG ${t.coin} 종료`;
-          reason = `${t.coin} LONG 종료 — ${pnlStr} (${t.totalPnl >= 0 ? '익절' : '손절'}) @ ${pxFmt}`;
-          totalRealizedPnl += t.totalPnl; closedCount++; if (t.totalPnl > 0) wins++;
-        } else if (t.dir.startsWith('Close Short')) {
-          type = 'EXIT'; action = `SHORT ${t.coin} 종료`;
-          reason = `${t.coin} SHORT 종료 — ${pnlStr} (${t.totalPnl >= 0 ? '익절' : '손절'}) @ ${pxFmt}`;
-          totalRealizedPnl += t.totalPnl; closedCount++; if (t.totalPnl > 0) wins++;
-        } else if (t.dir.includes('>')) {
-          type = 'FLIP'; const newDir = t.dir.includes('> Short') ? 'SHORT' : 'LONG';
-          action = `${t.coin} → ${newDir} 전환`;
-          reason = `${t.coin} 방향 전환 (${pnlStr}) @ ${pxFmt}`;
-          totalRealizedPnl += t.totalPnl; closedCount++; if (t.totalPnl > 0) wins++;
-        } else {
-          type = 'TRADE'; action = `${t.coin} ${t.dir}`;
-          reason = `${t.totalSize.toPrecision(4)} @ ${pxFmt}`;
-        }
-
-        history.push({ timestamp: new Date(t.time).toISOString(), time: t.time, type, action, reason });
-      }
-
-      // Merge bot decisions (SKIP, PERIODIC, TRADE from algorithm)
-      const botCutoff = now - 48 * 60 * 60 * 1000;
-      for (const bd of botDecisions) {
-        const bdTime = new Date(bd.timestamp).getTime();
-        if (bdTime < botCutoff) continue;
-
-        if (bd.type === 'PERIODIC') {
-          // Bot's periodic analysis summary — shows actual signal scores
-          const btcSig = bd.signals?.BTC;
-          const ethSig = bd.signals?.ETH;
-          const btcStr = btcSig ? `BTC ${btcSig.direction}(${btcSig.score})` : '';
-          const ethStr = ethSig ? `ETH ${ethSig.direction}(${ethSig.score})` : '';
-          history.push({
-            timestamp: bd.timestamp, time: bdTime, type: 'PERIODIC',
-            action: bd.action || '분석 완료',
-            reason: `${bd.reason || ''}${btcStr || ethStr ? ` [${btcStr} ${ethStr}]` : ''}`,
-          });
-        } else if (bd.type === 'SKIP' && bd.signal) {
-          // Show significant SKIP decisions (score > 20 = was close to entry)
-          if (Math.abs(bd.signal.score || 0) > 20) {
-            history.push({
-              timestamp: bd.timestamp, time: bdTime, type: 'SKIP',
-              action: bd.action || `SKIP`,
-              reason: `스코어 ${bd.signal.score} (신뢰도 ${((bd.signal.confidence || 0) * 100).toFixed(0)}%) — ${bd.reason || '기준 미달'}`,
-            });
-          }
-        } else if (bd.type === 'TRADE') {
-          // Bot's trade decisions (may overlap with fills — dedup by checking time proximity)
-          const hasMatchingFill = history.some(h => h.type === 'ENTRY' || h.type === 'EXIT' ? Math.abs(h.time - bdTime) < 60000 : false);
-          if (!hasMatchingFill) {
-            history.push({
-              timestamp: bd.timestamp, time: bdTime, type: bd.action?.includes('CLOSE') ? 'EXIT' : 'ENTRY',
-              action: bd.action || 'TRADE', reason: bd.reason || '',
-            });
-          }
-        }
-      }
-
-      // Sort newest first
-      history.sort((a, b) => b.time - a.time);
-
-      // Insert periodic gaps (every 3h between events, and from now to most recent)
-      const PERIODIC_GAP = 3 * 60 * 60 * 1000;
-      const withPeriodic = [];
-
-      // Current state as first entry
-      const btcWhaleDir = btcShort > btcLong ? 'SHORT' : (btcLong > btcShort ? 'LONG' : 'MIXED');
-      const ethWhaleDir = ethShort > ethLong ? 'SHORT' : (ethLong > ethShort ? 'LONG' : 'MIXED');
-
-      if (positions.length > 0) {
-        const posLines = positions.map(p => {
-          const pnlPct = (p.pnl / accountValue * 100).toFixed(1);
-          return `${p.direction} ${p.coin} — $${p.pnl.toFixed(2)} (${pnlPct}%)`;
-        }).join(', ');
-        withPeriodic.push({ timestamp: new Date(now).toISOString(), time: now, type: 'CURRENT',
-          action: `${positions.length}개 포지션 보유`, reason: posLines });
-      } else {
-        withPeriodic.push({ timestamp: new Date(now).toISOString(), time: now, type: 'CURRENT',
-          action: '포지션 없음 - 관망',
-          reason: `시그널 기준 미달. 관망 대기 중.` });
-      }
-
-      // Add actual trade events and periodic fillers
-      let lastTime = now;
-      for (const h of history) {
-        // Insert periodic if gap > 3h
-        if (lastTime - h.time > PERIODIC_GAP) {
-          const periodicTime = h.time + PERIODIC_GAP;
-          withPeriodic.push({ timestamp: new Date(periodicTime).toISOString(), time: periodicTime, type: 'PERIODIC',
-            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).` });
-        }
-        withPeriodic.push(h);
-        lastTime = h.time;
-      }
-
-      // If no trade events at all, add periodic entries
-      if (history.length === 0) {
-        for (let t = now - PERIODIC_GAP; t > now - 24*60*60*1000; t -= PERIODIC_GAP) {
-          withPeriodic.push({ timestamp: new Date(t).toISOString(), time: t, type: 'PERIODIC',
-            action: '관망 유지', reason: `BTC/ETH 시그널 기준 미달. 고래: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).` });
-        }
-        // System start
-        withPeriodic.push({ timestamp: new Date(now - 24*60*60*1000).toISOString(), time: now - 24*60*60*1000,
-          type: 'SYSTEM', action: '시스템 시작', reason: `Hyperliquid 연결 완료. 계좌 잔고 $${accountValue.toFixed(0)}.` });
-      }
-
-      // Current decision card
-      let currentDecision;
-      if (positions.length > 0) {
-        const pos = positions[0];
-        const pnlPercent = (pos.pnl / accountValue * 100).toFixed(1);
-        currentDecision = { status: 'IN_POSITION', action: `${pos.direction} ${pos.coin}`,
-          reason: `시그널 기반 진입. PnL: $${pos.pnl.toFixed(2)} (${pnlPercent}%). TP/SL 자동 설정.`,
-          emoji: pos.pnl >= 0 ? '📈' : '📉' };
-      } else {
-        // Use latest bot PERIODIC decision for real signal scores
-        const latestPeriodic = botDecisions.filter(d => d.type === 'PERIODIC').pop();
-        const btcSigScore = latestPeriodic?.signals?.BTC?.score || 0;
-        const ethSigScore = latestPeriodic?.signals?.ETH?.score || 0;
-        const btcSigDir = latestPeriodic?.signals?.BTC?.direction || 'NEUTRAL';
-        const ethSigDir = latestPeriodic?.signals?.ETH?.direction || 'NEUTRAL';
-
-        currentDecision = { status: 'WAITING', action: '포지션 없음 - 관망',
-          reason: `🤖 봇 시그널: BTC ${btcSigDir}(${btcSigScore}) / ETH ${ethSigDir}(${ethSigScore})\n\n🐋 고래 동향: BTC ${btcWhaleDir} (${btcLong}L/${btcShort}S), ETH ${ethWhaleDir} (${ethLong}L/${ethShort}S).\n\n💰 현재가: BTC $${btcPrice.toLocaleString()}, ETH $${ethPrice.toLocaleString()}.\n\n⏳ 진입 기준: 시그널 스코어 ±${config_entryThreshold()} 이상 필요.`,
-          emoji: '⏳' };
-      }
-
-      const btcWhaleScore = Math.max(btcLong, btcShort) / (btcLong + btcShort || 1) * 100;
-      const ethWhaleScore = Math.max(ethLong, ethShort) / (ethLong + ethShort || 1) * 100;
-
-      // BTC/ETH 스코어: 봇 시그널 스코어 + 고래 컨센서스 혼합
-      const latestBotPeriodic = botDecisions.filter(d => d.type === 'PERIODIC').pop();
-      const botBtcScore = latestBotPeriodic?.signals?.BTC?.score;
-      const botEthScore = latestBotPeriodic?.signals?.ETH?.score;
-      // 봇 시그널이 있으면 사용, 없으면 고래 스코어 fallback
-      currentDecision.btcScore = botBtcScore != null ? Math.abs(Math.round(botBtcScore)) : Math.round(btcWhaleScore);
-      currentDecision.ethScore = botEthScore != null ? Math.abs(Math.round(botEthScore)) : Math.round(ethWhaleScore);
-      currentDecision.btcWhale = `${btcLong}L/${btcShort}S`;
-      currentDecision.ethWhale = `${ethLong}L/${ethShort}S`;
-
-      return {
-        current: currentDecision,
-        history: withPeriodic.slice(0, 20),
-        lastUpdate: new Date(now).toISOString(),
-        nextUpdate: new Date(now + 2 * 60 * 60 * 1000).toISOString(),
-        stats: {
-          accountValue,
-          totalTrades: trades.length,
-          winRate: closedCount > 0 ? `${wins}/${closedCount}` : 'N/A',
-          totalPnL: totalRealizedPnl,
-        },
-      };
-    }
-
-    // ============================================================
-    // INIT (after all API functions are defined)
-    // ============================================================
-    // Initial load
+    // Init
     fetchData();
     fetchDecision();
     fetchPortfolio(currentRange);
-    setTimeout(fetchWhaleFills, 2000);
-
-    // Auto-refresh every 10 minutes (not aggressive — manual refresh available)
-    setInterval(() => { fetchData(); fetchDecision(); fetchPortfolio(currentRange); fetchWhaleFills(); }, 600000);
-
-    // ============================================================
-    // PAGE TABS
-    // ============================================================
-    function switchPage(page) {
-      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
-      document.querySelector(`.page-tab[onclick*="${page}"]`).classList.add('active');
-      ['trading', 'analytics', 'algorithm'].forEach(p => {
-        const el = document.getElementById(p + '-page');
-        if (el) el.style.display = p === page ? 'block' : 'none';
-      });
-      if (page === 'analytics' && !window._analyticsLoaded) loadAnalytics();
-    }
-    window.switchPage = switchPage;
-
-    // ============================================================
-    // ANALYTICS TAB
-    // ============================================================
-    let consensusChart = null;
-
-    async function loadAnalytics() {
-      try {
-        const res = await fetch('./data/whale-analytics.json?t=' + Date.now());
-        if (!res.ok) return;
-        const data = await res.json();
-        window._analyticsLoaded = true;
-
-        // Stats
-        document.getElementById('a-total-trades').textContent = (data.stats.totalTrades || 0).toLocaleString();
-        document.getElementById('a-round-trips').textContent = (data.stats.totalRoundTrips || 0).toLocaleString();
-        document.getElementById('a-avg-wr').textContent = (data.stats.avgWinRate || 0) + '%';
-        document.getElementById('a-whale-count').textContent = data.stats.profileCount || 0;
-
-        // Profiles
-        renderProfiles(data.profiles || []);
-        // Weight sliders
-        renderWeightSliders(data.profiles || []);
-        // Consensus chart
-        renderConsensus(data.consensus || []);
-        // Heatmap
-        renderHeatmap(data.heatmap || []);
-      } catch(e) { console.error('Analytics load error:', e); }
-    }
-
-    function renderProfiles(profiles) {
-      const grid = document.getElementById('profile-grid');
-      grid.innerHTML = profiles.map((p, i) => {
-        const wr = ((p.win_rate || 0) * 100).toFixed(1);
-        const wrColor = p.win_rate > 0.5 ? 'var(--green)' : 'var(--red)';
-        const style = p.trading_style === 'day_trader' ? '⚡ Day' : p.trading_style === 'swing_trader' ? '🌊 Swing' : '📊 ' + (p.trading_style || '?');
-        const pnlSign = (p.total_pnl || 0) >= 0 ? '+' : '';
-        const pnlColor = (p.total_pnl || 0) >= 0 ? 'var(--green)' : 'var(--red)';
-        const topAssets = (p.top_assets || []).map(a => `${a.coin}(${a.trades})`).join(', ') || '-';
-        const skillBg = p.skill_weight > 1.2 ? 'var(--green)' : p.skill_weight > 0.9 ? '#f59e0b' : 'var(--red)';
-        return `
-          <div class="profile-card">
-            <div class="profile-header">
-              <span class="profile-name">🐋 Whale ${i + 1}</span>
-              <span class="profile-badge" style="background:${skillBg};color:#000">${style}</span>
-            </div>
-            <div class="profile-stat"><span class="label">Address</span><span class="value" style="font-family:monospace;font-size:11px">${p.address}</span></div>
-            <div class="profile-stat"><span class="label">Win Rate</span><span class="value" style="color:${wrColor}">${wr}%</span></div>
-            <div class="profile-stat"><span class="label">Round Trips</span><span class="value">${p.total_round_trips || 0}</span></div>
-            <div class="profile-stat"><span class="label">Total PnL</span><span class="value" style="color:${pnlColor}">${pnlSign}$${(p.total_pnl || 0).toFixed(2)}</span></div>
-            <div class="profile-stat"><span class="label">Profit Factor</span><span class="value">${(p.profit_factor || 0).toFixed(2)}</span></div>
-            <div class="profile-stat"><span class="label">Avg Hold</span><span class="value">${p.hold_time_hours || 0}h</span></div>
-            <div class="profile-stat"><span class="label">Bias</span><span class="value">${((p.long_bias || 0) * 100).toFixed(0)}% Long</span></div>
-            <div class="profile-stat"><span class="label">Top Assets</span><span class="value" style="font-size:11px">${topAssets}</span></div>
-            <div class="profile-stat"><span class="label">Skill Weight</span><span class="value" style="color:${skillBg}">${(p.skill_weight || 1).toFixed(2)}x</span></div>
-          </div>`;
-      }).join('');
-    }
-
-    function renderConsensus(data) {
-      if (!data.length) return;
-      const ctx = document.getElementById('consensus-chart').getContext('2d');
-      if (consensusChart) consensusChart.destroy();
-
-      const labels = data.map(d => d.time);
-      consensusChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'BTC Long', data: data.map(d => d.btc.long),
-              borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)',
-              fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0,
-            },
-            {
-              label: 'BTC Short', data: data.map(d => -d.btc.short),
-              borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',
-              fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0,
-            },
-            {
-              label: 'ETH Long', data: data.map(d => d.eth.long),
-              borderColor: '#3b82f6', borderDash: [5, 3],
-              tension: 0.3, borderWidth: 1.5, pointRadius: 0,
-            },
-            {
-              label: 'ETH Short', data: data.map(d => -d.eth.short),
-              borderColor: '#f97316', borderDash: [5, 3],
-              tension: 0.3, borderWidth: 1.5, pointRadius: 0,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          interaction: { mode: 'index', intersect: false },
-          scales: {
-            x: {
-              type: 'time', time: { unit: 'hour', displayFormats: { hour: 'M/d HH:mm' } },
-              grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', maxTicksLimit: 12 },
-            },
-            y: {
-              grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' },
-              title: { display: true, text: 'Long ↑ / Short ↓', color: '#888' },
-            },
-          },
-          plugins: { legend: { labels: { color: '#ccc', font: { size: 11 } } } },
-        },
-      });
-    }
-
-    function renderHeatmap(data) {
-      const container = document.getElementById('heatmap-container');
-      if (!data.length) { container.innerHTML = '<p style="color:var(--muted)">No data</p>'; return; }
-
-      const maxVal = Math.max(...data.flatMap(d => d.hours));
-      const hours = Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}`);
-
-      let html = '<table style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;color:var(--muted);font-size:11px;padding:4px">Coin</th>';
-      hours.forEach(h => html += `<th style="color:var(--muted);font-size:10px;padding:2px">${h}</th>`);
-      html += '<th style="color:var(--muted);font-size:10px;padding:4px">Total</th></tr></thead><tbody>';
-
-      for (const d of data) {
-        html += `<tr><td style="font-weight:600;font-size:12px;padding:4px">${d.coin}</td>`;
-        d.hours.forEach(v => {
-          const intensity = maxVal > 0 ? v / maxVal : 0;
-          const bg = intensity > 0.7 ? 'rgba(34,197,94,0.8)' : intensity > 0.4 ? 'rgba(34,197,94,0.4)' : intensity > 0.1 ? 'rgba(34,197,94,0.15)' : 'transparent';
-          html += `<td style="text-align:center"><span class="heatmap-cell" style="background:${bg}">${v || ''}</span></td>`;
-        });
-        html += `<td style="text-align:center;font-weight:600;font-size:12px">${d.total}</td></tr>`;
-      }
-      html += '</tbody></table>';
-      container.innerHTML = html;
-    }
-
-    // ============================================================
-    // WHALE WEIGHT ADJUSTMENT
-    // ============================================================
-    let _analyticsProfiles = [];
-    const WEIGHT_STORAGE_KEY = 'kuro_whale_weights';
-
-    function loadSavedWeights() {
-      try { return JSON.parse(localStorage.getItem(WEIGHT_STORAGE_KEY) || '{}'); } catch { return {}; }
-    }
-
-    function renderWeightSliders(profiles) {
-      _analyticsProfiles = profiles;
-      const saved = loadSavedWeights();
-      const container = document.getElementById('weight-sliders');
-
-      container.innerHTML = profiles.map((p, i) => {
-        const addr = p.address;
-        const savedW = saved[addr]?.weight;
-        const defaultW = (p.skill_weight || 1.0);
-        const currentW = savedW ?? defaultW;
-        const enabled = saved[addr]?.enabled !== false;
-        const wr = ((p.win_rate || 0) * 100).toFixed(0);
-        const cls = currentW > 1.05 ? 'boosted' : currentW < 0.95 ? 'nerfed' : 'neutral';
-
-        return `
-          <div class="weight-row">
-            <button class="weight-toggle ${enabled ? '' : 'disabled'}" onclick="toggleWhaleEnabled(${i})" title="Enable/Disable">
-              ${enabled ? '✅' : '⛔'}
-            </button>
-            <div class="weight-label">🐋 Whale ${i + 1} <span style="font-size:10px;color:var(--muted);font-family:monospace">${addr}</span></div>
-            <div class="weight-meta">WR ${wr}% · PF ${(p.profit_factor || 0).toFixed(1)}</div>
-            <input type="range" class="weight-slider" min="0" max="200" value="${Math.round(currentW * 100)}"
-              oninput="updateWeight(${i}, this.value)" ${!enabled ? 'disabled' : ''}>
-            <div class="weight-value ${cls}" id="wv-${i}">${currentW.toFixed(2)}x</div>
-          </div>`;
-      }).join('');
-    }
-
-    function updateWeight(idx, val) {
-      const w = val / 100;
-      const el = document.getElementById(`wv-${idx}`);
-      el.textContent = w.toFixed(2) + 'x';
-      el.className = 'weight-value ' + (w > 1.05 ? 'boosted' : w < 0.95 ? 'nerfed' : 'neutral');
-
-      // Save to localStorage
-      const saved = loadSavedWeights();
-      const addr = _analyticsProfiles[idx].address;
-      saved[addr] = { ...saved[addr], weight: w };
-      localStorage.setItem(WEIGHT_STORAGE_KEY, JSON.stringify(saved));
-    }
-    window.updateWeight = updateWeight;
-
-    function toggleWhaleEnabled(idx) {
-      const saved = loadSavedWeights();
-      const addr = _analyticsProfiles[idx].address;
-      const current = saved[addr]?.enabled !== false;
-      saved[addr] = { ...saved[addr], enabled: !current, weight: saved[addr]?.weight ?? _analyticsProfiles[idx].skill_weight ?? 1.0 };
-      localStorage.setItem(WEIGHT_STORAGE_KEY, JSON.stringify(saved));
-      renderWeightSliders(_analyticsProfiles); // re-render
-    }
-    window.toggleWhaleEnabled = toggleWhaleEnabled;
-
-    function resetWeights() {
-      localStorage.removeItem(WEIGHT_STORAGE_KEY);
-      renderWeightSliders(_analyticsProfiles);
-      document.getElementById('weight-status').textContent = '✅ Reset to computed defaults';
-    }
-    window.resetWeights = resetWeights;
-
-    async function applyWeights() {
-      const saved = loadSavedWeights();
-      if (Object.keys(saved).length === 0) {
-        document.getElementById('weight-status').textContent = '⚠️ No changes to apply';
-        return;
-      }
-
-      const statusEl = document.getElementById('weight-status');
-      statusEl.textContent = '⏳ Applying...';
-
-      // Write to GitHub repo via API (data/whale-overrides.json)
-      try {
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(saved, null, 2))));
-        const repo = 'lukealwaysawake/kuro-dashboard-static';
-        const path = 'data/whale-overrides.json';
-        const token = localStorage.getItem('github_token');
-
-        if (!token) {
-          // Fallback: copy to clipboard for manual apply
-          const json = JSON.stringify(saved, null, 2);
-          await navigator.clipboard.writeText(json);
-          statusEl.innerHTML = '📋 Copied to clipboard! Send to Kuro to apply.<br><code style="font-size:10px">' +
-            JSON.stringify(saved).slice(0, 80) + '...</code>';
-          return;
-        }
-
-        // Get current file SHA
-        const existing = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-          headers: { Authorization: `token ${token}` }
-        }).then(r => r.ok ? r.json() : null).catch(() => null);
-
-        await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-          method: 'PUT',
-          headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: 'Update whale weight overrides from dashboard UI',
-            content,
-            sha: existing?.sha,
-          })
-        });
-
-        statusEl.textContent = '✅ Applied! Bot will pick up changes within 5 minutes.';
-      } catch(e) {
-        const json = JSON.stringify(saved, null, 2);
-        await navigator.clipboard.writeText(json).catch(() => {});
-        statusEl.innerHTML = `⚠️ GitHub push failed. Config copied to clipboard.<br><small>${e.message}</small>`;
-      }
-    }
-    window.applyWeights = applyWeights;
-
-    // ============================================================
-    // ALGORITHM TAB
-    // ============================================================
-    (function renderAlgoWeights() {
-      const weights = [
-        { name: 'Whale Consensus', key: 'whale', w: 0.30, color: '#22c55e', desc: '14 고래 포지션 합의' },
-        { name: 'Trend (EMA)', key: 'trend', w: 0.15, color: '#3b82f6', desc: 'EMA 20/50/200 정렬' },
-        { name: 'Momentum', key: 'momentum', w: 0.15, color: '#8b5cf6', desc: 'RSI + MACD + Stochastic' },
-        { name: 'Multi-Timeframe', key: 'mtf', w: 0.10, color: '#06b6d4', desc: '1h 트렌드 + 15m 모멘텀 + 5m 진입' },
-        { name: 'Volume', key: 'volume', w: 0.10, color: '#f59e0b', desc: '거래량 이상 + OBV' },
-        { name: 'Divergence', key: 'divergence', w: 0.10, color: '#ec4899', desc: 'RSI/MACD 다이버전스' },
-        { name: 'On-chain', key: 'onchain', w: 0.05, color: '#14b8a6', desc: '온체인 메트릭스' },
-        { name: 'Orderbook', key: 'orderbook', w: 0.05, color: '#6366f1', desc: '호가창 불균형' },
-      ];
-
-      const container = document.getElementById('algo-weight-bars');
-      if (!container) return;
-      container.innerHTML = weights.map(w => `
-        <div class="algo-weight-bar">
-          <div class="bar-label">${w.name}</div>
-          <div class="bar-bg">
-            <div class="bar-fill" style="width:${w.w * 100 * 3.33}%;background:${w.color}">${(w.w * 100).toFixed(0)}%</div>
-          </div>
-          <div style="width:180px;font-size:11px;color:var(--muted);padding-left:8px">${w.desc}</div>
-        </div>`).join('');
-    })();
-
-    // Live config from decisions.json
-    async function loadAlgoConfig() {
-      try {
-        const res = await fetch('./data/decisions.json?t=' + Date.now());
-        const data = await res.json();
-        const cfg = data.config || {};
-        const el = document.getElementById('algo-live-config');
-        if (!el) return;
-        el.innerHTML = `
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
-            <div style="background:#1a1d23;border-radius:6px;padding:10px">
-              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Entry Threshold</div>
-              <div style="font-size:18px;font-weight:700;color:var(--green)">${cfg.entryThreshold || 35}</div>
-              <div>+ Ranging: +10 | Volatile: +15</div>
-            </div>
-            <div style="background:#1a1d23;border-radius:6px;padding:10px">
-              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Leverage Tiers</div>
-              <div>BTC/ETH/SOL: <strong style="color:var(--text)">${cfg.leverageTiers?.BTC || 5}x</strong></div>
-              <div>Others: <strong style="color:var(--text)">${cfg.leverageTiers?.default || 2}x</strong></div>
-            </div>
-            <div style="background:#1a1d23;border-radius:6px;padding:10px">
-              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Max Positions</div>
-              <div style="font-size:18px;font-weight:700;color:var(--text)">${cfg.maxPairs || 8}</div>
-              <div>Same direction: max 6</div>
-            </div>
-            <div style="background:#1a1d23;border-radius:6px;padding:10px">
-              <div style="font-weight:600;color:var(--text);margin-bottom:4px">Decisions Synced</div>
-              <div style="font-size:18px;font-weight:700;color:var(--text)">${(data.decisions || []).length}</div>
-              <div>Last: ${data.syncedAt ? new Date(data.syncedAt).toLocaleString('ko-KR') : '-'}</div>
-            </div>
-          </div>`;
-      } catch(e) { console.warn('Config load failed:', e); }
-    }
-    loadAlgoConfig();
-
-    // ============================================================
-    // CUSTOM WHALE MANAGEMENT
-    // ============================================================
-    function renderCustomWhales() {
-      const custom = _loadCustomWhales();
-      const el = document.getElementById('custom-whale-list');
-      if (!el) return;
-      if (!custom.length) { el.innerHTML = '<div style="font-size:11px;color:var(--muted)">No custom whales added. Core 14 whales are always tracked.</div>'; return; }
-      el.innerHTML = custom.map((w, i) => `
-        <div class="weight-row" style="padding:6px 0">
-          <span style="font-size:12px;font-weight:600;color:var(--green)">✦ Custom ${i + 1}</span>
-          <span style="font-family:monospace;font-size:11px;color:var(--muted);flex:1;margin:0 8px">${w.address.slice(0, 10)}...${w.address.slice(-6)}</span>
-          <span style="font-size:12px">${w.label || ''}</span>
-          <button class="refresh-btn" onclick="removeCustomWhale(${i})" style="font-size:10px;padding:2px 8px;color:var(--red);border-color:var(--red)">✕</button>
-        </div>`).join('');
-    }
-
-    function addCustomWhale() {
-      const addr = document.getElementById('new-whale-addr').value.trim().toLowerCase();
-      const label = document.getElementById('new-whale-label').value.trim();
-      const status = document.getElementById('whale-add-status');
-
-      if (!addr.match(/^0x[a-f0-9]{40}$/)) { status.textContent = '⚠️ Invalid address (must be 0x + 40 hex chars)'; return; }
-      if (WATCHED_WHALES.includes(addr)) { status.textContent = '⚠️ Already tracked'; return; }
-
-      const custom = _loadCustomWhales();
-      custom.push({ address: addr, label, addedAt: new Date().toISOString() });
-      localStorage.setItem('kuro_custom_whales', JSON.stringify(custom));
-
-      // Add to live WATCHED_WHALES
-      WATCHED_WHALES.push(addr);
-      whaleNameMap[addr] = label || `Custom ${custom.length}`;
-
-      document.getElementById('new-whale-addr').value = '';
-      document.getElementById('new-whale-label').value = '';
-      status.textContent = `✅ Added ${addr.slice(0, 10)}... — refresh to see their positions`;
-      renderCustomWhales();
-    }
-    window.addCustomWhale = addCustomWhale;
-
-    function removeCustomWhale(idx) {
-      const custom = _loadCustomWhales();
-      const removed = custom.splice(idx, 1)[0];
-      localStorage.setItem('kuro_custom_whales', JSON.stringify(custom));
-      // Remove from live array
-      const wi = WATCHED_WHALES.indexOf(removed.address);
-      if (wi >= 0) WATCHED_WHALES.splice(wi, 1);
-      renderCustomWhales();
-      document.getElementById('whale-add-status').textContent = `Removed ${removed.address.slice(0, 10)}...`;
-    }
-    window.removeCustomWhale = removeCustomWhale;
-
-    // Render on analytics load
-    renderCustomWhales();
-
-    // Hook into loadAnalytics to also render sliders
-    const _origLoadAnalytics = loadAnalytics;
-    loadAnalytics = async function() {
-      await _origLoadAnalytics();
-      // Re-render sliders with latest profiles
-      if (_analyticsProfiles.length === 0) {
-        try {
-          const res = await fetch('./data/whale-analytics.json?t=' + Date.now());
-          const data = await res.json();
-          renderWeightSliders(data.profiles || []);
-        } catch {}
-      }
-    };
+    setInterval(fetchData, 45000);
+    setInterval(fetchDecision, 45000);
+    setInterval(() => fetchPortfolio(currentRange), 60000);
   </script>
 </body>
 </html>
