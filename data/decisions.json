@@ -1,73 +1,5 @@
 [
   {
-    "timestamp": "2026-03-23T05:13:25.876Z",
-    "type": "SKIP",
-    "action": "SKIP HYPE",
-    "reason": "Low confidence (14% < 45%)",
-    "signal": {
-      "direction": "SHORT",
-      "score": -147,
-      "confidence": 0.14101785714285714
-    },
-    "mission": {
-      "regime": "CRITICAL",
-      "roi": 3.9011990069553852,
-      "drawdownFromPeak": 0.2872527072451358,
-      "recentWinRate": 0.5,
-      "kellyStats": {
-        "kellyFull": 0,
-        "kellyFraction": 0,
-        "winRate": 0,
-        "avgWin": 0,
-        "avgLoss": 0,
-        "rewardRisk": 0,
-        "tradeCount": 0,
-        "active": false,
-        "reason": "Insufficient trades (0/10)"
-      },
-      "startingBalance": 993.36121,
-      "highWaterMark": 6830.837557,
-      "totalTrades": 0,
-      "winCount": 0,
-      "lossCount": 0,
-      "runningHours": 936.4107172222223
-    }
-  },
-  {
-    "timestamp": "2026-03-23T05:18:24.332Z",
-    "type": "SKIP",
-    "action": "SKIP HYPE",
-    "reason": "Low confidence (13% < 45%)",
-    "signal": {
-      "direction": "SHORT",
-      "score": -148,
-      "confidence": 0.13143928571428573
-    },
-    "mission": {
-      "regime": "CRITICAL",
-      "roi": 3.910845367114747,
-      "drawdownFromPeak": 0.2858499041598568,
-      "recentWinRate": 0.5,
-      "kellyStats": {
-        "kellyFull": 0,
-        "kellyFraction": 0,
-        "winRate": 0,
-        "avgWin": 0,
-        "avgLoss": 0,
-        "rewardRisk": 0,
-        "tradeCount": 0,
-        "active": false,
-        "reason": "Insufficient trades (0/10)"
-      },
-      "startingBalance": 993.36121,
-      "highWaterMark": 6830.837557,
-      "totalTrades": 0,
-      "winCount": 0,
-      "lossCount": 0,
-      "runningHours": 936.4995411111111
-    }
-  },
-  {
     "timestamp": "2026-03-23T05:22:21.197Z",
     "type": "SKIP",
     "action": "SKIP ETH",
@@ -16957,6 +16889,74 @@
       "winCount": 0,
       "lossCount": 0,
       "runningHours": 983.9113633333334
+    }
+  },
+  {
+    "timestamp": "2026-03-25T04:48:26.124Z",
+    "type": "SKIP",
+    "action": "SKIP ZRO",
+    "reason": "Low confidence (45% < 45%)",
+    "signal": {
+      "direction": "SHORT",
+      "score": -48,
+      "confidence": 0.445
+    },
+    "mission": {
+      "regime": "CRITICAL",
+      "roi": 4.04372402461739,
+      "drawdownFromPeak": 0.26652628492597014,
+      "recentWinRate": 0.5,
+      "kellyStats": {
+        "kellyFull": 0,
+        "kellyFraction": 0,
+        "winRate": 0,
+        "avgWin": 0,
+        "avgLoss": 0,
+        "rewardRisk": 0,
+        "tradeCount": 0,
+        "active": false,
+        "reason": "Insufficient trades (0/10)"
+      },
+      "startingBalance": 993.36121,
+      "highWaterMark": 6830.837557,
+      "totalTrades": 0,
+      "winCount": 0,
+      "lossCount": 0,
+      "runningHours": 984.0001425
+    }
+  },
+  {
+    "timestamp": "2026-03-25T04:52:26.754Z",
+    "type": "SKIP",
+    "action": "SKIP ZRO",
+    "reason": "Low confidence (45% < 45%)",
+    "signal": {
+      "direction": "SHORT",
+      "score": -48,
+      "confidence": 0.445
+    },
+    "mission": {
+      "regime": "CRITICAL",
+      "roi": 4.048171943416232,
+      "drawdownFromPeak": 0.26587945502215077,
+      "recentWinRate": 0.5,
+      "kellyStats": {
+        "kellyFull": 0,
+        "kellyFraction": 0,
+        "winRate": 0,
+        "avgWin": 0,
+        "avgLoss": 0,
+        "rewardRisk": 0,
+        "tradeCount": 0,
+        "active": false,
+        "reason": "Insufficient trades (0/10)"
+      },
+      "startingBalance": 993.36121,
+      "highWaterMark": 6830.837557,
+      "totalTrades": 0,
+      "winCount": 0,
+      "lossCount": 0,
+      "runningHours": 984.0770766666667
     }
   }
 ]
