@@ -1,39 +1,5 @@
 [
   {
-    "timestamp": "2026-03-23T15:43:22.365Z",
-    "type": "SKIP",
-    "action": "SKIP ETH",
-    "reason": "Neutral (score: 26)",
-    "signal": {
-      "direction": "NEUTRAL",
-      "score": 26,
-      "confidence": 0.25785714285714284
-    },
-    "mission": {
-      "regime": "CRITICAL",
-      "roi": 4.033044708882884,
-      "drawdownFromPeak": 0.2680793035582357,
-      "recentWinRate": 0.5,
-      "kellyStats": {
-        "kellyFull": 0,
-        "kellyFraction": 0,
-        "winRate": 0,
-        "avgWin": 0,
-        "avgLoss": 0,
-        "rewardRisk": 0,
-        "tradeCount": 0,
-        "active": false,
-        "reason": "Insufficient trades (0/10)"
-      },
-      "startingBalance": 993.36121,
-      "highWaterMark": 6830.837557,
-      "totalTrades": 0,
-      "winCount": 0,
-      "lossCount": 0,
-      "runningHours": 946.9098513888889
-    }
-  },
-  {
     "timestamp": "2026-03-23T15:43:22.626Z",
     "type": "SKIP",
     "action": "SKIP HYPE",
@@ -16937,6 +16903,40 @@
       "winCount": 0,
       "lossCount": 0,
       "runningHours": 994.1678055555556
+    }
+  },
+  {
+    "timestamp": "2026-03-25T15:02:27.795Z",
+    "type": "SKIP",
+    "action": "SKIP ETH",
+    "reason": "Neutral (score: -11)",
+    "signal": {
+      "direction": "NEUTRAL",
+      "score": -11,
+      "confidence": 0.056613636363636366
+    },
+    "mission": {
+      "regime": "CRITICAL",
+      "roi": 4.058482775867602,
+      "drawdownFromPeak": 0.26438002235162794,
+      "recentWinRate": 0.5,
+      "kellyStats": {
+        "kellyFull": 0,
+        "kellyFraction": 0,
+        "winRate": 0,
+        "avgWin": 0,
+        "avgLoss": 0,
+        "rewardRisk": 0,
+        "tradeCount": 0,
+        "active": false,
+        "reason": "Insufficient trades (0/10)"
+      },
+      "startingBalance": 993.36121,
+      "highWaterMark": 6830.837557,
+      "totalTrades": 0,
+      "winCount": 0,
+      "lossCount": 0,
+      "runningHours": 994.2448036111111
     }
   }
 ]
