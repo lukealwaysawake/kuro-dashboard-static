@@ -582,12 +582,59 @@
 
     async function fetchPortfolio(range) {
       try {
-        const res = await fetch('/api/portfolio.js?range=' + (range || currentRange));
-        if (!res.ok) return; // Graceful fail when no server
-        const data = await res.json();
+        const data = await buildStaticPortfolio(range || currentRange);
         renderChart(data);
         renderChartSummary(data);
-      } catch (e) { /* no server available, skip */ }
+      } catch (e) { console.error('Portfolio fetch error:', e); }
+    }
+
+    async function buildStaticPortfolio(range) {
+      const periodMap = { '7d': 'perpWeek', '30d': 'perpMonth', 'all': 'perpAllTime' };
+      const [account, portfolio] = await Promise.all([
+        hlPost({type:'clearinghouseState', user:WALLET}).catch(()=>({})),
+        hlPost({type:'portfolio', user:WALLET}).catch(()=>[]),
+      ]);
+      const liveUnrealized = (account?.assetPositions || [])
+        .reduce((sum, p) => sum + parseFloat(p?.position?.unrealizedPnl || 0), 0);
+
+      let points = [];
+      if (range === '1d') {
+        const now = Date.now();
+        const start = now - 24 * 60 * 60 * 1000;
+        const fills = await hlPost({type:'userFillsByTime', user:WALLET, startTime:start, endTime:now}).catch(()=>[]);
+        const bySlot = new Map();
+        for (const f of Array.isArray(fills) ? fills : []) {
+          const slot = Math.floor(Number(f.time || 0) / 1800000) * 1800000;
+          bySlot.set(slot, (bySlot.get(slot) || 0) + parseFloat(f.closedPnl || 0) - parseFloat(f.fee || 0));
+        }
+        let running = 0;
+        for (let t = Math.ceil(start / 1800000) * 1800000; t <= now; t += 1800000) {
+          running += bySlot.get(t) || 0;
+          points.push({ time:t, value:running });
+        }
+        points.push({ time:now, value:running + liveUnrealized });
+      } else {
+        const periodKey = periodMap[range] || 'perpWeek';
+        const period = Array.isArray(portfolio)
+          ? portfolio.find(([name]) => name === periodKey)?.[1]
+          : null;
+        points = (period?.pnlHistory || []).map(([time, value]) => ({ time, value:parseFloat(value || 0) }));
+      }
+
+      if (!points.length) points = [{ time:Date.now(), value:liveUnrealized }];
+      const startPnl = points[0].value || 0;
+      const endPnl = points[points.length - 1].value || 0;
+      const pnlAmount = endPnl - startPnl;
+      const currentPnl = endPnl;
+      return {
+        points,
+        currentPnl,
+        pnlAmount,
+        pnlPercent: startPnl !== 0 ? (pnlAmount / Math.abs(startPnl)) * 100 : 0,
+        realizedPnl: currentPnl - liveUnrealized,
+        unrealizedPnl: liveUnrealized,
+        range,
+      };
     }
 
     function renderChart(data) {
@@ -1305,12 +1352,38 @@
 
     async function fetchDecision() {
       try {
-        const res = await fetch('/api/decisions.js');
-        if (!res.ok) return; // Graceful fail when no server
-        const data = await res.json();
-        if (data.error || !data.current) return;
-        renderDecision(data);
-      } catch(e) { /* no server available, skip */ }
+        const res = await fetch('data/decisions.json?ts=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const decisions = Array.isArray(payload.decisions) ? payload.decisions : [];
+        const latest = [...decisions].reverse().find(d => d && d.action);
+        if (!latest) return;
+        renderDecision({
+          current: {
+            status: latest.type || 'LATEST',
+            action: latest.action || 'Latest decision',
+            reason: latest.reason || '',
+            btcScore: latest.signal?.score || latest.signal?.confidence ? Math.round((latest.signal?.confidence || 0) * 100) : '--',
+            ethScore: '--',
+            btcWhale: latest.signal?.whale?.direction || '--',
+            ethWhale: '--',
+          },
+          history: [...decisions].reverse().slice(0, 20).map(d => ({
+            timestamp: d.timestamp,
+            action: d.action,
+            reason: d.reason,
+            type: d.type || 'SYSTEM',
+            pnl: d.pnl,
+            detail: d,
+          })),
+          stats: latest.mission ? {
+            totalTrades: latest.mission.totalTrades || 0,
+            winRate: latest.mission.recentWinRate != null ? `${Math.round(latest.mission.recentWinRate * 100)}%` : 'N/A',
+            totalPnL: latest.mission.roi || 0,
+          } : null,
+          lastUpdate: payload.syncedAt || latest.timestamp,
+        });
+      } catch(e) { console.error('Decision fetch error:', e); }
     }
 
     function refresh() {
